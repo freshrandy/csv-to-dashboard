@@ -10,6 +10,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import TechnicianQualityChart from "./TechnicianQualityChart";
+
 const Dashboard = ({ metrics }) => {
   // Exit early if no metrics
   if (!metrics) return null;
@@ -177,48 +179,54 @@ const Dashboard = ({ metrics }) => {
     return processedData;
   })();
 
-// Regional Performance Data - from metrics
-const regionalData = [];
+  // Regional Performance Data - from metrics
+  const regionalData = [];
 
-// Add debug logging to see what data is available
-console.log("Metrics conversion data:", metricsData.conversion);
+  // Add debug logging to see what data is available
+  console.log("Metrics conversion data:", metricsData.conversion);
 
-// Check if we have the enhanced region data from our metrics.js update
-if (metricsData.conversion.regionalData) {
-  console.log("Using actual region data from metrics");
-  
-  Object.entries(metricsData.conversion.regionalData).forEach(([region, data]) => {
-    regionalData.push({
-      name: region,
-      certifications: data.certifications,
-      installations: data.installations,
-      conversion: parseFloat(data.conversionRate)
-    });
-  });
-} else {
-  console.log("Falling back to estimates based on conversion rates");
-  
-  // Fall back to using the conversion rates
-  Object.entries(metricsData.conversion.regionalConversion).forEach(([region, rate]) => {
-    // Default values if not available
-    const conversionRate = parseFloat(rate);
-    const certifications = Math.round(50 + (Math.random() * 50)); // 50-100 range
-    const installations = Math.round((certifications * conversionRate) / 100);
-    
-    regionalData.push({
-      name: region,
-      certifications,
-      installations,
-      conversion: conversionRate
-    });
-  });
-}
+  // Check if we have the enhanced region data from our metrics.js update
+  if (metricsData.conversion.regionalData) {
+    console.log("Using actual region data from metrics");
 
-// Sort by certifications (highest first)
-regionalData.sort((a, b) => b.certifications - a.certifications);
+    Object.entries(metricsData.conversion.regionalData).forEach(
+      ([region, data]) => {
+        regionalData.push({
+          name: region,
+          certifications: data.certifications,
+          installations: data.installations,
+          conversion: parseFloat(data.conversionRate),
+        });
+      }
+    );
+  } else {
+    console.log("Falling back to estimates based on conversion rates");
 
-// Log for debugging
-console.log("Regional data for display:", regionalData);
+    // Fall back to using the conversion rates
+    Object.entries(metricsData.conversion.regionalConversion).forEach(
+      ([region, rate]) => {
+        // Default values if not available
+        const conversionRate = parseFloat(rate);
+        const certifications = Math.round(50 + Math.random() * 50); // 50-100 range
+        const installations = Math.round(
+          (certifications * conversionRate) / 100
+        );
+
+        regionalData.push({
+          name: region,
+          certifications,
+          installations,
+          conversion: conversionRate,
+        });
+      }
+    );
+  }
+
+  // Sort by certifications (highest first)
+  regionalData.sort((a, b) => b.certifications - a.certifications);
+
+  // Log for debugging
+  console.log("Regional data for display:", regionalData);
 
   // Speed Test Performance
   const speedTestData = [
@@ -764,6 +772,13 @@ console.log("Regional data for display:", regionalData);
           </div>
         </div>
       </div>
+
+      {/* Quality metrics */}
+      {metrics.qualityCohort && (
+        <div className="mt-8">
+          <TechnicianQualityChart cohortData={metrics.qualityCohort} />
+        </div>
+      )}
 
       {/* Footer with gradient */}
       <div
