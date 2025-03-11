@@ -16,6 +16,13 @@ const Dashboard = ({ metrics }) => {
 
   // Extract data from metrics
   const { summary, metrics: metricsData, monthlyPrice = 14.99 } = metrics;
+  
+  // Check if we have address data
+  const hasAddresses = summary.hasAddresses;
+
+  // Determine terminology based on data
+  const locationTerm = hasAddresses ? "Home" : "Assessment";
+  const locationTermPlural = hasAddresses ? "Homes" : "Assessments";
 
   // Brand Colors
   const colors = {
@@ -255,7 +262,7 @@ const Dashboard = ({ metrics }) => {
               className="p-4 rounded-lg"
               style={{ backgroundColor: colors.cloudGrey }}
             >
-              <p className="text-sm text-gray-600">Unique Home Visits</p>
+              <p className="text-sm text-gray-600">Unique {locationTermPlural}</p>
               <div
                 className="text-3xl font-bold mt-1"
                 style={{ color: colors.teal }}
@@ -263,7 +270,7 @@ const Dashboard = ({ metrics }) => {
                 {activityMetrics.uniqueVisits}
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Unique addresses assessed
+                {hasAddresses ? "Unique addresses assessed" : "Unique assessments completed"}
               </p>
             </div>
             <div
@@ -285,7 +292,7 @@ const Dashboard = ({ metrics }) => {
               className="p-4 rounded-lg"
               style={{ backgroundColor: colors.cloudGrey }}
             >
-              <p className="text-sm text-gray-600">Avg. Rooms Per Home</p>
+              <p className="text-sm text-gray-600">Avg. Rooms Per {locationTerm}</p>
               <div
                 className="text-3xl font-bold mt-1"
                 style={{ color: colors.jade }}
@@ -343,7 +350,7 @@ const Dashboard = ({ metrics }) => {
           <div className="mt-4">
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium text-gray-700">
-                Home Conversion Rate
+                {locationTerm} Conversion Rate
               </span>
               <span
                 className="text-sm font-medium"
@@ -362,7 +369,7 @@ const Dashboard = ({ metrics }) => {
               ></div>
             </div>
             <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>Homes with installations / Total visits</span>
+              <span>{locationTermPlural} with installations / Total {locationTermPlural.toLowerCase()}</span>
               <span>
                 {activityMetrics.conversionRate.homes}/
                 {activityMetrics.conversionRate.total}
@@ -433,30 +440,36 @@ const Dashboard = ({ metrics }) => {
             Weekly Progress 📅
           </h2>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={weeklyData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="week"
-                  tick={{ fontSize: 10 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={70}
-                />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="completed" name="Scans" fill={colors.teal} />
-                <Bar
-                  dataKey="installations"
-                  name="Access Points Installed"
-                  fill={colors.jade}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            {weeklyData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={weeklyData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="week"
+                    tick={{ fontSize: 10 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={70}
+                  />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="completed" name="Scans" fill={colors.teal} />
+                  <Bar
+                    dataKey="installations"
+                    name="Access Points Installed"
+                    fill={colors.jade}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-gray-500">Insufficient data for weekly progress visualization</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -469,29 +482,35 @@ const Dashboard = ({ metrics }) => {
             Conversion Rate Trend 📈
           </h2>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={weeklyData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="week"
-                  tick={{ fontSize: 10 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={70}
-                />
-                <YAxis domain={[0, 100]} />
-                <Tooltip formatter={(value) => [`${value}%`, "Conversion"]} />
-                <Legend />
-                <Bar
-                  dataKey="conversion"
-                  name="Conversion %"
-                  fill={colors.electricBlue}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            {weeklyData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={weeklyData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="week"
+                    tick={{ fontSize: 10 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={70}
+                  />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip formatter={(value) => [`${value}%`, "Conversion"]} />
+                  <Legend />
+                  <Bar
+                    dataKey="conversion"
+                    name="Conversion %"
+                    fill={colors.electricBlue}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-gray-500">Insufficient data for conversion trend visualization</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -504,65 +523,71 @@ const Dashboard = ({ metrics }) => {
             Regional Performance Comparison 🗺️
           </h2>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Region
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Total Certifications
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Installations
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Conversion Rate
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {regionalData.map((region, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {region.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
-                      {region.certifications}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
-                      {region.installations}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                      <span
-                        className="px-2 py-1 text-xs rounded-full"
-                        style={{
-                          backgroundColor:
-                            region.conversion > 20
-                              ? colors.jade
-                              : colors.cloudGrey,
-                          color: region.conversion > 20 ? "white" : "black",
-                        }}
-                      >
-                        {region.conversion}%
-                      </span>
-                    </td>
+            {regionalData.length > 0 ? (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Region
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Total Certifications
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Installations
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Conversion Rate
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {regionalData.map((region, index) => (
+                    <tr key={index}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {region.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
+                        {region.certifications}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
+                        {region.installations}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                        <span
+                          className="px-2 py-1 text-xs rounded-full"
+                          style={{
+                            backgroundColor:
+                              region.conversion > 20
+                                ? colors.jade
+                                : colors.cloudGrey,
+                            color: region.conversion > 20 ? "white" : "black",
+                          }}
+                        >
+                          {region.conversion}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="flex items-center justify-center p-8">
+                <p className="text-gray-500">Regional data unavailable or insufficient</p>
+              </div>
+            )}
           </div>
         </div>
 
