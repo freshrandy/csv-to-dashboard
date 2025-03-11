@@ -1,0 +1,260 @@
+import Papa from "papaparse";
+
+/**
+ * Generate installation metrics from CSV data
+ * @param {string} csvData - CSV data as a string
+ * @param {number} monthlyPrice - Monthly price per installation
+ * @returns {Object} Metrics object
+ */
+export function generateMetrics(csvData, monthlyPrice = 14.99) {
+  // Parse the CSV data
+  const parsedData = Papa.parse(csvData, {
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+  });
+
+  const data = parsedData.data;
+
+  // Extract date range
+  let minDate = new Date();
+  let maxDate = new Date(0);
+
+  data.forEach((row) => {
+    if (row["Date"] || row["Date "]) {
+      // Handle both possible column names
+      try {
+        const dateString = row["Date"] || row["Date "];
+        const date = new Date(dateString);
+        if (!isNaN(date)) {
+          minDate = date < minDate ? date : minDate;
+          maxDate = date > maxDate ? date : maxDate;
+        }
+      } catch (e) {
+        // Skip invalid dates
+      }
+    }
+  });
+
+  // Format date range
+  const formatDate = (date) => {
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const dateRange = `${formatDate(minDate)} to ${formatDate(maxDate)}`;
+
+  // Count unique addresses
+  const uniqueAddresses = new Set();
+  data.forEach((row) => {
+    if (row.Address) {
+      const addressKey = `${row.Address}, ${row.City || ""}, ${
+        row["State/Province"] || ""
+      }`;
+      uniqueAddresses.add(addressKey);
+    }
+  });
+
+  // Count statuses
+  const statusCounts = {};
+  data.forEach((row) => {
+    if (row.Status) {
+      statusCounts[row.Status] = (statusCounts[row.Status] || 0) + 1;
+    }
+  });
+
+  // Calculate installation metrics
+  let totalRoomsTested = 0;
+  let installRecords = 0;
+  let totalNodesRecommended = 0;
+  let totalNodesInstalled = 0;
+  let totalExpectedSpeed = 0;
+  let totalActualSpeed = 0;
+  let speedTestCount = 0;
+  let successfulSpeedTests = 0;
+  let totalQualityScore = 0;
+  let qualityScoreCount = 0;
+
+  data.forEach((row) => {
+    if (row["Rooms Tested"]) {
+      totalRoomsTested += row["Rooms Tested"];
+    }
+
+    if (row["Mesh Nodes Recommended"]) {
+      totalNodesRecommended += row["Mesh Nodes Recommended"];
+      installRecords++;
+    }
+
+    if (row["Mesh Nodes Installed"]) {
+      totalNodesInstalled += row["Mesh Nodes Installed"];
+    }
+
+    if (row["Expected Speed"] && row["Actual Speed"]) {
+      totalExpectedSpeed += row["Expected Speed"];
+      totalActualSpeed += row["Actual Speed"];
+      speedTestCount++;
+
+      // Count tests where actual speed is at least 80% of expected
+      if (row["Actual Speed"] >= 0.8 * row["Expected Speed"]) {
+        successfulSpeedTests++;
+      }
+    }
+
+    if (
+      row["Quality of Install Score"] !== null &&
+      row["Quality of Install Score"] !== undefined
+    ) {
+      totalQualityScore += row["Quality of Install Score"];
+      qualityScoreCount++;
+    }
+  });
+
+  // Calculate averages and percentages
+  const avgRoomsTested = totalRoomsTested / data.length || 0;
+  const avgNodesRecommended =
+    installRecords > 0 ? totalNodesRecommended / installRecords : 0;
+  const installationRate =
+    totalNodesRecommended > 0
+      ? (totalNodesInstalled / totalNodesRecommended) * 100
+      : 0;
+  const avgSpeedRatio =
+    totalExpectedSpeed > 0 ? (totalActualSpeed / totalExpectedSpeed) * 100 : 0;
+  const speedTestSuccessRate =
+    speedTestCount > 0 ? (successfulSpeedTests / speedTestCount) * 100 : 0;
+  const avgQualityScore =
+    qualityScoreCount > 0 ? totalQualityScore / qualityScoreCount : 0;
+
+  // Regional distribution and conversion
+  const regionCounts = {};
+  const regionInstalls = {};
+
+  data.forEach((row) => {
+    if (row["State/Province"]) {
+      // Count total by region
+      regionCounts[row["State/Province"]] =
+        (regionCounts[row["State/Province"]] || 0) + 1;
+
+      // Count installations by region
+      if (row["Mesh Nodes Installed"] > 0) {
+        regionInstalls[row["State/Province"]] =
+          (regionInstalls[row["State/Province"]] || 0) + 1;
+      }
+    }
+  });
+
+  // Calculate regional conversion rates
+  const regionConversion = {};
+  for (const region in regionCounts) {
+    const installs = regionInstalls[region] || 0;
+    regionConversion[region] = (installs / regionCounts[region]) * 100;
+  }
+
+  // Calculate home conversion rate
+  const homesWithInstalls = Object.values(regionInstalls).reduce(
+    (a, b) => a + b,
+    0
+  );
+  const homeConversionRate =
+    uniqueAddresses.size > 0
+      ? (homesWithInstalls / uniqueAddresses.size) * 100
+      : 0;
+
+  // Calculate monthly distribution
+  const monthlyDistribution = {};
+  const weeklyDistribution = {};
+
+  data.forEach((row) => {
+    const dateField = row["Date"] || row["Date "];
+    if (dateField) {
+      try {
+        const date = new Date(dateField);
+        if (!isNaN(date)) {
+          // Monthly grouping
+          const monthKey = `${date.getFullYear()}-${String(
+            date.getMonth() + 1
+          ).padStart(2, "0")}`;
+          monthlyDistribution[monthKey] =
+            (monthlyDistribution[monthKey] || 0) + 1;
+
+          // Weekly grouping (using ISO week)
+          const getWeekNumber = (d) => {
+            const date = new Date(d.getTime());
+            date.setHours(0, 0, 0, 0);
+            date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+            const week1 = new Date(date.getFullYear(), 0, 4);
+            return (
+              1 +
+              Math.round(
+                ((date.getTime() - week1.getTime()) / 86400000 -
+                  3 +
+                  ((week1.getDay() + 6) % 7)) /
+                  7
+              )
+            );
+          };
+
+          const weekNum = getWeekNumber(date);
+          const weekKey = `${date.getFullYear()}-W${String(weekNum).padStart(
+            2,
+            "0"
+          )}`;
+          weeklyDistribution[weekKey] = (weeklyDistribution[weekKey] || 0) + 1;
+        }
+      } catch (e) {
+        // Skip invalid dates
+      }
+    }
+  });
+
+  // Calculate revenue metrics
+  const monthlyRevenue = monthlyPrice * totalNodesInstalled;
+
+  // Construct the metrics object
+  return {
+    summary: {
+      dateRange,
+      totalEntries: data.length,
+      uniqueHomes: uniqueAddresses.size,
+      statusDistribution: statusCounts,
+    },
+    monthlyPrice: monthlyPrice,
+    metrics: {
+      installation: {
+        totalNodesRecommended,
+        totalNodesInstalled,
+        installationRate: installationRate.toFixed(2),
+        averageNodesRecommended: avgNodesRecommended.toFixed(2),
+      },
+      quality: {
+        averageQualityScore: avgQualityScore.toFixed(2),
+      },
+      performance: {
+        averageRoomsTested: avgRoomsTested.toFixed(2),
+        speedTestSuccessRate: speedTestSuccessRate.toFixed(2),
+        averageSpeedRatio: avgSpeedRatio.toFixed(2),
+      },
+      conversion: {
+        homeConversionRate: homeConversionRate.toFixed(2),
+        regionalConversion: Object.fromEntries(
+          Object.entries(regionConversion).map(([region, rate]) => [
+            region,
+            rate.toFixed(2),
+          ])
+        ),
+      },
+      revenue: {
+        monthlyRecurringRevenue: monthlyRevenue.toFixed(2),
+        yearOneLTV: (monthlyRevenue * 12).toFixed(2),
+        yearTwoLTV: (monthlyRevenue * 24).toFixed(2),
+        yearThreeLTV: (monthlyRevenue * 36).toFixed(2),
+      },
+      temporal: {
+        monthlyDistribution,
+        weeklyDistribution,
+      },
+    },
+  };
+}
