@@ -16,6 +16,10 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
 
   const data = parsedData.data;
 
+  // Check available columns
+  const sampleRow = data[0] || {};
+  const hasAddresses = 'Address' in sampleRow && sampleRow.Address !== null;
+  
   // Extract date range
   let minDate = new Date();
   let maxDate = new Date(0);
@@ -47,14 +51,24 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
 
   const dateRange = `${formatDate(minDate)} to ${formatDate(maxDate)}`;
 
-  // Count unique addresses
-  const uniqueAddresses = new Set();
+  // Count unique assessments (use address if available, otherwise use alternative identifier)
+  const uniqueAssessments = new Set();
   data.forEach((row) => {
-    if (row.Address) {
+    if (hasAddresses && row.Address) {
       const addressKey = `${row.Address}, ${row.City || ""}, ${
         row["State/Province"] || ""
       }`;
-      uniqueAddresses.add(addressKey);
+      uniqueAssessments.add(addressKey);
+    } else {
+      // Alternative: use date + city + state/province + any other identifying info
+      const dateStr = row["Date"] || row["Date "] || "";
+      const date = new Date(dateStr);
+      const formattedDate = !isNaN(date) ? date.toISOString().split('T')[0] : dateStr;
+      
+      const assessmentKey = `${formattedDate}|${row.City || ""}|${
+        row["State/Province"] || ""
+      }|${row["Quality of Install Score"] || ""}`;
+      uniqueAssessments.add(assessmentKey);
     }
   });
 
@@ -152,14 +166,14 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
     regionConversion[region] = (installs / regionCounts[region]) * 100;
   }
 
-  // Calculate home conversion rate
-  const homesWithInstalls = Object.values(regionInstalls).reduce(
-    (a, b) => a + b,
-    0
-  );
-  const homeConversionRate =
-    uniqueAddresses.size > 0
-      ? (homesWithInstalls / uniqueAddresses.size) * 100
+  // Calculate assessment conversion rate (formerly home conversion rate)
+  const assessmentsWithInstalls = data.filter(
+    row => row["Mesh Nodes Installed"] && row["Mesh Nodes Installed"] > 0
+  ).length;
+  
+  const assessmentConversionRate =
+    uniqueAssessments.size > 0
+      ? (assessmentsWithInstalls / uniqueAssessments.size) * 100
       : 0;
 
   // Calculate monthly distribution
@@ -217,8 +231,9 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
     summary: {
       dateRange,
       totalEntries: data.length,
-      uniqueHomes: uniqueAddresses.size,
+      uniqueHomes: uniqueAssessments.size,
       statusDistribution: statusCounts,
+      hasAddresses, // Flag to indicate if we have address data
     },
     monthlyPrice: monthlyPrice,
     metrics: {
@@ -237,7 +252,7 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
         averageSpeedRatio: avgSpeedRatio.toFixed(2),
       },
       conversion: {
-        homeConversionRate: homeConversionRate.toFixed(2),
+        homeConversionRate: assessmentConversionRate.toFixed(2),
         regionalConversion: Object.fromEntries(
           Object.entries(regionConversion).map(([region, rate]) => [
             region,
