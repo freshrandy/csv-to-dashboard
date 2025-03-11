@@ -6,6 +6,7 @@ import { saveAs } from "file-saver";
 import { generateMetrics } from "./metrics";
 import Loader from "./Loader";
 import Dashboard from "./Dashboard";
+import { generateQualityMetricsCohort } from "./cohortAnalysis";
 
 // Styled components
 const AppContainer = styled.div`
@@ -120,15 +121,18 @@ function App() {
       complete: (results) => {
         // Check if important data is missing
         const sampleRow = results.data[0] || {};
-        const hasAddresses = 'Address' in sampleRow && sampleRow.Address !== null;
-        
+        const hasAddresses =
+          "Address" in sampleRow && sampleRow.Address !== null;
+
         // Set parsed data
         setParsedData(results.data);
         setIsProcessing(false);
-        
+
         // Show a warning about missing data
         if (!hasAddresses) {
-          setDataWarning("Note: Address data is missing. Some metrics will be based on assessment count instead of unique locations.");
+          setDataWarning(
+            "Note: Address data is missing. Some metrics will be based on assessment count instead of unique locations."
+          );
         } else {
           setDataWarning("");
         }
@@ -151,12 +155,17 @@ function App() {
       const csv = Papa.unparse(parsedData);
       const metricsResult = generateMetrics(csv, monthlyPrice);
 
+      // Add quality cohort analysis
+      metricsResult.qualityCohort = generateQualityMetricsCohort(csv);
+
       setMetrics(metricsResult);
       setIsProcessing(false);
     } catch (error) {
       console.error("Error generating metrics:", error);
       setIsProcessing(false);
-      setDataWarning("Error generating metrics. Please check the data in your CSV file.");
+      setDataWarning(
+        "Error generating metrics. Please check the data in your CSV file."
+      );
     }
   };
 
@@ -173,7 +182,9 @@ function App() {
     <AppContainer>
       <Header>
         <Title>Certify CSV Dashboard Generator</Title>
-        <Subtitle>Upload installation data to generate metrics and visualization</Subtitle>
+        <Subtitle>
+          Upload installation data to generate metrics and visualization
+        </Subtitle>
       </Header>
 
       <DropzoneContainer {...getRootProps()} isDragActive={isDragActive}>
@@ -190,7 +201,7 @@ function App() {
           <h3>File loaded: {file.name}</h3>
           <p>Size: {(file.size / 1024).toFixed(2)} KB</p>
           <p>Records: {parsedData ? parsedData.length : "Calculating..."}</p>
-          
+
           {dataWarning && (
             <WarningBanner>
               <p>{dataWarning}</p>

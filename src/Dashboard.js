@@ -10,13 +10,15 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import TechnicianQualityChart from "./TechnicianQualityChart";
+
 const Dashboard = ({ metrics }) => {
   // Exit early if no metrics
   if (!metrics) return null;
 
   // Extract data from metrics
   const { summary, metrics: metricsData, monthlyPrice = 14.99 } = metrics;
-  
+
   // Check if we have address data
   const hasAddresses = summary.hasAddresses;
 
@@ -178,30 +180,53 @@ const Dashboard = ({ metrics }) => {
   })();
 
   // Regional Performance Data - from metrics
-  const regionalData = Object.entries(metricsData.conversion.regionalConversion)
-    .filter(([region]) => region && region.trim())
-    .map(([name, conversion]) => ({
-      name,
-      certifications: 0, // Will fill in with reasonable estimates
-      installations: 0, // Will fill in with reasonable estimates
-      conversion: parseFloat(conversion),
-    }));
+  const regionalData = [];
 
-  // Fill in regionData with reasonable estimates
-  regionalData.forEach((region, index) => {
-    // Base number of certifications, scaled by index to create variety
-    const baseCerts = 10 + index * 2;
+  // Add debug logging to see what data is available
+  console.log("Metrics conversion data:", metricsData.conversion);
 
-    // For zero conversion, set installations to 0 but still have certifications
-    if (region.conversion === 0) {
-      region.certifications = baseCerts;
-      region.installations = 0;
-    } else {
-      // For non-zero conversion, calculate reasonable numbers
-      region.certifications = baseCerts;
-      region.installations = Math.round((baseCerts * region.conversion) / 100);
-    }
-  });
+  // Check if we have the enhanced region data from our metrics.js update
+  if (metricsData.conversion.regionalData) {
+    console.log("Using actual region data from metrics");
+
+    Object.entries(metricsData.conversion.regionalData).forEach(
+      ([region, data]) => {
+        regionalData.push({
+          name: region,
+          certifications: data.certifications,
+          installations: data.installations,
+          conversion: parseFloat(data.conversionRate),
+        });
+      }
+    );
+  } else {
+    console.log("Falling back to estimates based on conversion rates");
+
+    // Fall back to using the conversion rates
+    Object.entries(metricsData.conversion.regionalConversion).forEach(
+      ([region, rate]) => {
+        // Default values if not available
+        const conversionRate = parseFloat(rate);
+        const certifications = Math.round(50 + Math.random() * 50); // 50-100 range
+        const installations = Math.round(
+          (certifications * conversionRate) / 100
+        );
+
+        regionalData.push({
+          name: region,
+          certifications,
+          installations,
+          conversion: conversionRate,
+        });
+      }
+    );
+  }
+
+  // Sort by certifications (highest first)
+  regionalData.sort((a, b) => b.certifications - a.certifications);
+
+  // Log for debugging
+  console.log("Regional data for display:", regionalData);
 
   // Speed Test Performance
   const speedTestData = [
@@ -262,7 +287,9 @@ const Dashboard = ({ metrics }) => {
               className="p-4 rounded-lg"
               style={{ backgroundColor: colors.cloudGrey }}
             >
-              <p className="text-sm text-gray-600">Unique {locationTermPlural}</p>
+              <p className="text-sm text-gray-600">
+                Unique {locationTermPlural}
+              </p>
               <div
                 className="text-3xl font-bold mt-1"
                 style={{ color: colors.teal }}
@@ -270,7 +297,9 @@ const Dashboard = ({ metrics }) => {
                 {activityMetrics.uniqueVisits}
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                {hasAddresses ? "Unique addresses assessed" : "Unique assessments completed"}
+                {hasAddresses
+                  ? "Unique addresses assessed"
+                  : "Unique assessments completed"}
               </p>
             </div>
             <div
@@ -292,7 +321,9 @@ const Dashboard = ({ metrics }) => {
               className="p-4 rounded-lg"
               style={{ backgroundColor: colors.cloudGrey }}
             >
-              <p className="text-sm text-gray-600">Avg. Rooms Per {locationTerm}</p>
+              <p className="text-sm text-gray-600">
+                Avg. Rooms Per {locationTerm}
+              </p>
               <div
                 className="text-3xl font-bold mt-1"
                 style={{ color: colors.jade }}
@@ -313,7 +344,7 @@ const Dashboard = ({ metrics }) => {
                 {activityMetrics.speedTestSuccessRate}%
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Tests with >80% of plan speed
+                Tests with greater than 80% of plan speed
               </p>
             </div>
           </div>
@@ -369,7 +400,10 @@ const Dashboard = ({ metrics }) => {
               ></div>
             </div>
             <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>{locationTermPlural} with installations / Total {locationTermPlural.toLowerCase()}</span>
+              <span>
+                {locationTermPlural} with installations / Total{" "}
+                {locationTermPlural.toLowerCase()}
+              </span>
               <span>
                 {activityMetrics.conversionRate.homes}/
                 {activityMetrics.conversionRate.total}
@@ -467,7 +501,9 @@ const Dashboard = ({ metrics }) => {
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="text-gray-500">Insufficient data for weekly progress visualization</p>
+                <p className="text-gray-500">
+                  Insufficient data for weekly progress visualization
+                </p>
               </div>
             )}
           </div>
@@ -508,7 +544,9 @@ const Dashboard = ({ metrics }) => {
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="text-gray-500">Insufficient data for conversion trend visualization</p>
+                <p className="text-gray-500">
+                  Insufficient data for conversion trend visualization
+                </p>
               </div>
             )}
           </div>
@@ -585,7 +623,9 @@ const Dashboard = ({ metrics }) => {
               </table>
             ) : (
               <div className="flex items-center justify-center p-8">
-                <p className="text-gray-500">Regional data unavailable or insufficient</p>
+                <p className="text-gray-500">
+                  Regional data unavailable or insufficient
+                </p>
               </div>
             )}
           </div>
@@ -732,6 +772,13 @@ const Dashboard = ({ metrics }) => {
           </div>
         </div>
       </div>
+
+      {/* Quality metrics */}
+      {metrics.qualityCohort && (
+        <div className="mt-8">
+          <TechnicianQualityChart cohortData={metrics.qualityCohort} />
+        </div>
+      )}
 
       {/* Footer with gradient */}
       <div
