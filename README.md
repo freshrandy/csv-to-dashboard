@@ -1,2 +1,2 @@
 # csv-to-dashboard
-Created with CodeSandbox
+Just a personal project, will write a proper readme in the future.
