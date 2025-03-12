@@ -1,0 +1,62 @@
+Arguments: 
+  /usr/local/share/nvm/versions/node/v20.12.1/bin/node /usr/share/yarn/bin/yarn.js add lodash
+
+PATH: 
+  /opt/git/bin:/usr/local/rvm/gems/ruby-3.2.3/bin:/usr/local/rvm/gems/ruby-3.2.3@global/bin:/usr/local/rvm/rubies/ruby-3.2.3/bin:/vscode/1.89.1.24130/bin/remote-cli:/opt/conda/condabin:/home/codespace/.dotnet:/home/codespace/nvm/current/bin:/home/codespace/.php/current/bin:/home/codespace/.python/current/bin:/home/codespace/java/current/bin:/home/codespace/.ruby/current/bin:/home/codespace/.local/bin:/usr/local/python/current/bin:/usr/local/py-utils/bin:/usr/local/oryx:/usr/local/go/bin:/go/bin:/usr/local/sdkman/bin:/usr/local/sdkman/candidates/java/current/bin:/usr/local/sdkman/candidates/gradle/current/bin:/usr/local/sdkman/candidates/maven/current/bin:/usr/local/sdkman/candidates/ant/current/bin:/usr/local/rvm/gems/default/bin:/usr/local/rvm/gems/default@global/bin:/usr/local/rvm/rubies/default/bin:/usr/local/share/rbenv/bin:/usr/local/php/current/bin:/opt/conda/bin:/usr/local/nvs:/usr/local/share/nvm/versions/node/v20.12.1/bin:/usr/local/hugo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/share/dotnet:/root/.dotnet/tools:/usr/local/rvm/bin:/root/.local/bin
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  20.12.1
+
+Platform: 
+  linux x64
+
+Trace: 
+  Error: ENOENT: no such file or directory, copyfile '/root/.cache/yarn/v6/npm-globals-13.24.0-8432a19d78ce0c1e833949c36adb345400bb1171-integrity/node_modules/globals/globals.json' -> '/project/workspace/node_modules/@eslint/eslintrc/node_modules/globals/globals.json'
+
+npm manifest: 
+  {
+    "name": "react",
+    "version": "1.0.0",
+    "description": "",
+    "keywords": [],
+    "main": "src/index.tsx",
+    "dependencies": {
+      "react": "^19.0.0",
+      "react-dom": "^19.0.0",
+      "react-scripts": "^5.0.0",
+      "papaparse": "5.5.2",
+      "react-dropzone": "14.3.8",
+      "styled-components": "6.1.15",
+      "file-saver": "2.0.5",
+      "recharts": "2.15.1",
+      "tailwindcss": "4.0.12",
+      "lodash": "^4.17.21"
+    },
+    "devDependencies": {
+      "@types/react": "19.0.0",
+      "@types/react-dom": "19.0.0",
+      "loader-utils": "3.2.1",
+      "typescript": "5.7.2"
+    }, 
+    "scripts": {
+      "start": "react-scripts start",
+      "build": "react-scripts build",
+      "test": "react-scripts test --env=jsdom",
+      "eject": "react-scripts eject"
+    },
+    "browserslist": [
+      ">0.2%",
+      "not dead",
+      "not ie <= 11",
+      "not op_mini all"
+    ]
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
