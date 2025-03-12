@@ -160,6 +160,9 @@ function App() {
       // Add quality cohort analysis
       metricsResult.qualityCohort = generateQualityMetricsCohort(csv);
 
+      // Add quality cohort analysis
+      metricsResult.qualityCohort = generateQualityMetricsCohort(csv);
+
       setMetrics(metricsResult);
       setIsProcessing(false);
     } catch (error) {
