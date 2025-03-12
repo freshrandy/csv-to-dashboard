@@ -11,6 +11,7 @@ import {
 } from "recharts";
 
 import TechnicianQualityChart from "./TechnicianQualityChart";
+import EmployeePerformanceTable from "./EmployeePerformanceTable";
 
 const Dashboard = ({ metrics }) => {
   // Exit early if no metrics
@@ -18,6 +19,9 @@ const Dashboard = ({ metrics }) => {
 
   // Extract data from metrics
   const { summary, metrics: metricsData, monthlyPrice = 14.99 } = metrics;
+
+  // Fix 2025-03-11, possible spaghetti
+  const employeeTableData = metrics && metrics.rawData ? metrics.rawData : [];
 
   // Check if we have address data
   const hasAddresses = summary.hasAddresses;
@@ -771,6 +775,11 @@ const Dashboard = ({ metrics }) => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Employee Performance Table */}
+      <div className="mt-8">
+        <EmployeePerformanceTable data={employeeTableData} />
       </div>
 
       {/* Quality metrics */}
