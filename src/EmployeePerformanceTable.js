@@ -4,6 +4,7 @@ import _ from "lodash";
 const EmployeePerformanceTable = ({ data: csvData }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [displayData, setDisplayData] = useState([]); // For pagination
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortConfig, setSortConfig] = useState({
@@ -11,6 +12,11 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
     direction: "desc",
   });
   const [visibleEmployees, setVisibleEmployees] = useState({});
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const analyzeData = async () => {
@@ -120,6 +126,13 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
         const sortedData = sortData(analysisData, sortConfig);
         setData(sortedData);
         setFilteredData(sortedData);
+
+        // Calculate total pages
+        setTotalPages(Math.ceil(sortedData.length / itemsPerPage));
+
+        // Set initial display data
+        updateDisplayData(sortedData, 1);
+
         setIsLoading(false);
       } catch (err) {
         console.error("Error analyzing data:", err);
@@ -131,12 +144,38 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
     analyzeData();
   }, [csvData, sortConfig]);
 
-  // Update filtered data when visibility changes
+  // Update display data when filtered data or pagination changes
   useEffect(() => {
-    setFilteredData(
-      data.filter((employee) => visibleEmployees[employee.email])
+    const filtered = data.filter(
+      (employee) => visibleEmployees[employee.email]
     );
-  }, [data, visibleEmployees]);
+    setFilteredData(filtered);
+    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+    updateDisplayData(filtered, 1); // Reset to first page when filter changes
+    setCurrentPage(1);
+  }, [data, visibleEmployees, itemsPerPage]);
+
+  // Update display data when page changes
+  const updateDisplayData = (dataArray, page) => {
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setDisplayData(dataArray.slice(startIndex, endIndex));
+  };
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    updateDisplayData(filteredData, page);
+  };
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (e) => {
+    const newItemsPerPage = parseInt(e.target.value, 10);
+    setItemsPerPage(newItemsPerPage);
+    setTotalPages(Math.ceil(filteredData.length / newItemsPerPage));
+    setCurrentPage(1); // Reset to first page
+    updateDisplayData(filteredData, 1);
+  };
 
   // Format employee name from email
   const formatEmployeeName = (email) => {
@@ -210,6 +249,103 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
       newVisibility[employee.email] = false;
     });
     setVisibleEmployees(newVisibility);
+  };
+
+  // Generate pagination buttons
+  const renderPaginationButtons = () => {
+    const buttons = [];
+
+    // Always add first page button
+    buttons.push(
+      <button
+        key="first"
+        onClick={() => handlePageChange(1)}
+        disabled={currentPage === 1}
+        className={`px-3 py-1 mx-1 rounded ${
+          currentPage === 1
+            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+            : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+        }`}
+      >
+        &laquo;
+      </button>
+    );
+
+    // Previous page button
+    buttons.push(
+      <button
+        key="prev"
+        onClick={() => handlePageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className={`px-3 py-1 mx-1 rounded ${
+          currentPage === 1
+            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+            : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+        }`}
+      >
+        &lt;
+      </button>
+    );
+
+    // Calculate range of page buttons to show
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+
+    // Adjust start if end is maxed out
+    if (endPage === totalPages) {
+      startPage = Math.max(1, endPage - 4);
+    }
+
+    // Add page number buttons
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-3 py-1 mx-1 rounded ${
+            currentPage === i
+              ? "bg-blue-500 text-white"
+              : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    // Next page button
+    buttons.push(
+      <button
+        key="next"
+        onClick={() => handlePageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className={`px-3 py-1 mx-1 rounded ${
+          currentPage === totalPages
+            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+            : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+        }`}
+      >
+        &gt;
+      </button>
+    );
+
+    // Always add last page button
+    buttons.push(
+      <button
+        key="last"
+        onClick={() => handlePageChange(totalPages)}
+        disabled={currentPage === totalPages}
+        className={`px-3 py-1 mx-1 rounded ${
+          currentPage === totalPages
+            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+            : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+        }`}
+      >
+        &raquo;
+      </button>
+    );
+
+    return buttons;
   };
 
   if (isLoading) {
@@ -359,7 +495,7 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredData.map((employee) => (
+            {displayData.map((employee) => (
               <tr key={employee.email}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
@@ -422,6 +558,39 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination controls */}
+      {filteredData.length > itemsPerPage && (
+        <div className="mt-4 flex flex-col sm:flex-row justify-between items-center">
+          <div className="flex items-center mb-4 sm:mb-0">
+            <span className="mr-2 text-sm text-gray-700">Rows per page:</span>
+            <select
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              className="border border-gray-300 rounded px-2 py-1 text-sm"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="flex flex-wrap justify-center">
+            {renderPaginationButtons()}
+          </div>
+
+          <div className="text-sm text-gray-700 mt-4 sm:mt-0">
+            Showing{" "}
+            {Math.min(
+              filteredData.length,
+              (currentPage - 1) * itemsPerPage + 1
+            )}{" "}
+            to {Math.min(filteredData.length, currentPage * itemsPerPage)} of{" "}
+            {filteredData.length} employees
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 text-sm text-gray-500">
         <p className="mt-2">
