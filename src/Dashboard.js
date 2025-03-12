@@ -22,7 +22,14 @@ const Dashboard = ({ metrics }) => {
   const { summary, metrics: metricsData, monthlyPrice = 14.99 } = metrics;
 
   // Fix 2025-03-11, possible spaghetti
-  const employeeTableData = metrics && metrics.rawData ? metrics.rawData : [];
+  const employeeTableData =
+    metrics && metrics.rawData
+      ? metrics.rawData.filter(
+          (row) =>
+            !row["Employee Email"] ||
+            !row["Employee Email"].includes("@routethis.com")
+        )
+      : [];
 
   // Check if we have address data
   const hasAddresses = summary.hasAddresses;
@@ -793,7 +800,7 @@ const Dashboard = ({ metrics }) => {
       {/* Employee Quality Cohort Analysis */}
       {metrics.rawData && (
         <div className="mt-8">
-          <EmployeeQualityCohortTable csvData={metrics.rawData} />
+          <EmployeeQualityCohortTable csvData={employeeTableData} />
         </div>
       )}
 

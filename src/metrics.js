@@ -6,156 +6,156 @@ import Papa from "papaparse";
  * @returns {string} Normalized region name
  */
 function normalizeRegion(region) {
-  if (!region) return '';
-  
+  if (!region) return "";
+
   // Normalize region naming (state abbreviations vs full names)
   const regionMap = {
- // USA States
- 'AL': 'Alabama',
- 'AK': 'Alaska',
- 'AZ': 'Arizona',
- 'AR': 'Arkansas',
- 'CA': 'California',
- 'CO': 'Colorado',
- 'CT': 'Connecticut',
- 'DE': 'Delaware',
- 'FL': 'Florida',
- 'GA': 'Georgia',
- 'HI': 'Hawaii',
- 'ID': 'Idaho',
- 'IL': 'Illinois',
- 'IN': 'Indiana',
- 'IA': 'Iowa',
- 'KS': 'Kansas',
- 'KY': 'Kentucky',
- 'LA': 'Louisiana',
- 'ME': 'Maine',
- 'MD': 'Maryland',
- 'MA': 'Massachusetts',
- 'MI': 'Michigan',
- 'MN': 'Minnesota',
- 'MS': 'Mississippi',
- 'MO': 'Missouri',
- 'MT': 'Montana',
- 'NE': 'Nebraska',
- 'NV': 'Nevada',
- 'NH': 'New Hampshire',
- 'NJ': 'New Jersey',
- 'NM': 'New Mexico',
- 'NY': 'New York',
- 'NC': 'North Carolina',
- 'ND': 'North Dakota',
- 'OH': 'Ohio',
- 'OK': 'Oklahoma',
- 'OR': 'Oregon',
- 'PA': 'Pennsylvania',
- 'RI': 'Rhode Island',
- 'SC': 'South Carolina',
- 'SD': 'South Dakota',
- 'TN': 'Tennessee',
- 'TX': 'Texas',
- 'UT': 'Utah',
- 'VT': 'Vermont',
- 'VA': 'Virginia',
- 'WA': 'Washington',
- 'WV': 'West Virginia',
- 'WI': 'Wisconsin',
- 'WY': 'Wyoming',
- 'DC': 'District of Columbia',
- 'AS': 'American Samoa',
- 'GU': 'Guam',
- 'MP': 'Northern Mariana Islands',
- 'PR': 'Puerto Rico',
- 'VI': 'U.S. Virgin Islands',
- 
- // Canadian Provinces and Territories
- 'AB': 'Alberta',
- 'BC': 'British Columbia',
- 'MB': 'Manitoba',
- 'NB': 'New Brunswick',
- 'NL': 'Newfoundland and Labrador',
- 'NS': 'Nova Scotia',
- 'NT': 'Northwest Territories',
- 'NU': 'Nunavut',
- 'ON': 'Ontario',
- 'PE': 'Prince Edward Island',
- 'QC': 'Quebec',
- 'SK': 'Saskatchewan',
- 'YT': 'Yukon',
- 
- // Add reverse mappings to handle cases where full names are used
- 'Alabama': 'Alabama',
- 'Alaska': 'Alaska',
- 'Arizona': 'Arizona',
- 'Arkansas': 'Arkansas',
- 'California': 'California',
- 'Colorado': 'Colorado',
- 'Connecticut': 'Connecticut',
- 'Delaware': 'Delaware',
- 'Florida': 'Florida',
- 'Georgia': 'Georgia',
- 'Hawaii': 'Hawaii',
- 'Idaho': 'Idaho',
- 'Illinois': 'Illinois',
- 'Indiana': 'Indiana',
- 'Iowa': 'Iowa',
- 'Kansas': 'Kansas',
- 'Kentucky': 'Kentucky',
- 'Louisiana': 'Louisiana',
- 'Maine': 'Maine',
- 'Maryland': 'Maryland',
- 'Massachusetts': 'Massachusetts',
- 'Michigan': 'Michigan',
- 'Minnesota': 'Minnesota',
- 'Mississippi': 'Mississippi',
- 'Missouri': 'Missouri',
- 'Montana': 'Montana',
- 'Nebraska': 'Nebraska',
- 'Nevada': 'Nevada',
- 'New Hampshire': 'New Hampshire',
- 'New Jersey': 'New Jersey',
- 'New Mexico': 'New Mexico',
- 'New York': 'New York',
- 'North Carolina': 'North Carolina',
- 'North Dakota': 'North Dakota',
- 'Ohio': 'Ohio',
- 'Oklahoma': 'Oklahoma',
- 'Oregon': 'Oregon',
- 'Pennsylvania': 'Pennsylvania',
- 'Rhode Island': 'Rhode Island',
- 'South Carolina': 'South Carolina',
- 'South Dakota': 'South Dakota',
- 'Tennessee': 'Tennessee',
- 'Texas': 'Texas',
- 'Utah': 'Utah',
- 'Vermont': 'Vermont',
- 'Virginia': 'Virginia',
- 'Washington': 'Washington',
- 'West Virginia': 'West Virginia',
- 'Wisconsin': 'Wisconsin',
- 'Wyoming': 'Wyoming',
- 'District of Columbia': 'District of Columbia',
- 'American Samoa': 'American Samoa',
- 'Guam': 'Guam',
- 'Northern Mariana Islands': 'Northern Mariana Islands',
- 'Puerto Rico': 'Puerto Rico',
- 'U.S. Virgin Islands': 'U.S. Virgin Islands',
- 
- 'Alberta': 'Alberta',
- 'British Columbia': 'British Columbia',
- 'Manitoba': 'Manitoba',
- 'New Brunswick': 'New Brunswick',
- 'Newfoundland and Labrador': 'Newfoundland and Labrador',
- 'Nova Scotia': 'Nova Scotia',
- 'Northwest Territories': 'Northwest Territories',
- 'Nunavut': 'Nunavut',
- 'Ontario': 'Ontario',
- 'Prince Edward Island': 'Prince Edward Island',
- 'Quebec': 'Quebec',
- 'Saskatchewan': 'Saskatchewan',
- 'Yukon': 'Yukon'
+    // USA States
+    AL: "Alabama",
+    AK: "Alaska",
+    AZ: "Arizona",
+    AR: "Arkansas",
+    CA: "California",
+    CO: "Colorado",
+    CT: "Connecticut",
+    DE: "Delaware",
+    FL: "Florida",
+    GA: "Georgia",
+    HI: "Hawaii",
+    ID: "Idaho",
+    IL: "Illinois",
+    IN: "Indiana",
+    IA: "Iowa",
+    KS: "Kansas",
+    KY: "Kentucky",
+    LA: "Louisiana",
+    ME: "Maine",
+    MD: "Maryland",
+    MA: "Massachusetts",
+    MI: "Michigan",
+    MN: "Minnesota",
+    MS: "Mississippi",
+    MO: "Missouri",
+    MT: "Montana",
+    NE: "Nebraska",
+    NV: "Nevada",
+    NH: "New Hampshire",
+    NJ: "New Jersey",
+    NM: "New Mexico",
+    NY: "New York",
+    NC: "North Carolina",
+    ND: "North Dakota",
+    OH: "Ohio",
+    OK: "Oklahoma",
+    OR: "Oregon",
+    PA: "Pennsylvania",
+    RI: "Rhode Island",
+    SC: "South Carolina",
+    SD: "South Dakota",
+    TN: "Tennessee",
+    TX: "Texas",
+    UT: "Utah",
+    VT: "Vermont",
+    VA: "Virginia",
+    WA: "Washington",
+    WV: "West Virginia",
+    WI: "Wisconsin",
+    WY: "Wyoming",
+    DC: "District of Columbia",
+    AS: "American Samoa",
+    GU: "Guam",
+    MP: "Northern Mariana Islands",
+    PR: "Puerto Rico",
+    VI: "U.S. Virgin Islands",
+
+    // Canadian Provinces and Territories
+    AB: "Alberta",
+    BC: "British Columbia",
+    MB: "Manitoba",
+    NB: "New Brunswick",
+    NL: "Newfoundland and Labrador",
+    NS: "Nova Scotia",
+    NT: "Northwest Territories",
+    NU: "Nunavut",
+    ON: "Ontario",
+    PE: "Prince Edward Island",
+    QC: "Quebec",
+    SK: "Saskatchewan",
+    YT: "Yukon",
+
+    // Add reverse mappings to handle cases where full names are used
+    Alabama: "Alabama",
+    Alaska: "Alaska",
+    Arizona: "Arizona",
+    Arkansas: "Arkansas",
+    California: "California",
+    Colorado: "Colorado",
+    Connecticut: "Connecticut",
+    Delaware: "Delaware",
+    Florida: "Florida",
+    Georgia: "Georgia",
+    Hawaii: "Hawaii",
+    Idaho: "Idaho",
+    Illinois: "Illinois",
+    Indiana: "Indiana",
+    Iowa: "Iowa",
+    Kansas: "Kansas",
+    Kentucky: "Kentucky",
+    Louisiana: "Louisiana",
+    Maine: "Maine",
+    Maryland: "Maryland",
+    Massachusetts: "Massachusetts",
+    Michigan: "Michigan",
+    Minnesota: "Minnesota",
+    Mississippi: "Mississippi",
+    Missouri: "Missouri",
+    Montana: "Montana",
+    Nebraska: "Nebraska",
+    Nevada: "Nevada",
+    "New Hampshire": "New Hampshire",
+    "New Jersey": "New Jersey",
+    "New Mexico": "New Mexico",
+    "New York": "New York",
+    "North Carolina": "North Carolina",
+    "North Dakota": "North Dakota",
+    Ohio: "Ohio",
+    Oklahoma: "Oklahoma",
+    Oregon: "Oregon",
+    Pennsylvania: "Pennsylvania",
+    "Rhode Island": "Rhode Island",
+    "South Carolina": "South Carolina",
+    "South Dakota": "South Dakota",
+    Tennessee: "Tennessee",
+    Texas: "Texas",
+    Utah: "Utah",
+    Vermont: "Vermont",
+    Virginia: "Virginia",
+    Washington: "Washington",
+    "West Virginia": "West Virginia",
+    Wisconsin: "Wisconsin",
+    Wyoming: "Wyoming",
+    "District of Columbia": "District of Columbia",
+    "American Samoa": "American Samoa",
+    Guam: "Guam",
+    "Northern Mariana Islands": "Northern Mariana Islands",
+    "Puerto Rico": "Puerto Rico",
+    "U.S. Virgin Islands": "U.S. Virgin Islands",
+
+    Alberta: "Alberta",
+    "British Columbia": "British Columbia",
+    Manitoba: "Manitoba",
+    "New Brunswick": "New Brunswick",
+    "Newfoundland and Labrador": "Newfoundland and Labrador",
+    "Nova Scotia": "Nova Scotia",
+    "Northwest Territories": "Northwest Territories",
+    Nunavut: "Nunavut",
+    Ontario: "Ontario",
+    "Prince Edward Island": "Prince Edward Island",
+    Quebec: "Quebec",
+    Saskatchewan: "Saskatchewan",
+    Yukon: "Yukon",
   };
-  
+
   return regionMap[region] || region;
 }
 
@@ -173,12 +173,17 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
     skipEmptyLines: true,
   });
 
-  const data = parsedData.data;
+  // Filter out @routethis.com email addresses before any metric calculations
+  const data = parsedData.data.filter(
+    (row) =>
+      !row["Employee Email"] ||
+      !row["Employee Email"].includes("@routethis.com")
+  );
 
   // Check available columns
   const sampleRow = data[0] || {};
-  const hasAddresses = 'Address' in sampleRow && sampleRow.Address !== null;
-  
+  const hasAddresses = "Address" in sampleRow && sampleRow.Address !== null;
+
   // Extract date range
   let minDate = new Date();
   let maxDate = new Date(0);
@@ -222,8 +227,10 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
       // Alternative: use date + city + state/province + any other identifying info
       const dateStr = row["Date"] || row["Date "] || "";
       const date = new Date(dateStr);
-      const formattedDate = !isNaN(date) ? date.toISOString().split('T')[0] : dateStr;
-      
+      const formattedDate = !isNaN(date)
+        ? date.toISOString().split("T")[0]
+        : dateStr;
+
       const assessmentKey = `${formattedDate}|${row.City || ""}|${
         row["State/Province"] || ""
       }|${row["Quality of Install Score"] || ""}`;
@@ -308,13 +315,15 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
     if (row["State/Province"]) {
       // Normalize the region name
       const normalizedRegion = normalizeRegion(row["State/Province"]);
-      
+
       // Count total by region
-      regionCounts[normalizedRegion] = (regionCounts[normalizedRegion] || 0) + 1;
+      regionCounts[normalizedRegion] =
+        (regionCounts[normalizedRegion] || 0) + 1;
 
       // Count installations by region
       if (row["Mesh Nodes Installed"] > 0) {
-        regionInstalls[normalizedRegion] = (regionInstalls[normalizedRegion] || 0) + 1;
+        regionInstalls[normalizedRegion] =
+          (regionInstalls[normalizedRegion] || 0) + 1;
       }
     }
   });
@@ -328,9 +337,9 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
 
   // Calculate assessment conversion rate (formerly home conversion rate)
   const assessmentsWithInstalls = data.filter(
-    row => row["Mesh Nodes Installed"] && row["Mesh Nodes Installed"] > 0
+    (row) => row["Mesh Nodes Installed"] && row["Mesh Nodes Installed"] > 0
   ).length;
-  
+
   const assessmentConversionRate =
     uniqueAssessments.size > 0
       ? (assessmentsWithInstalls / uniqueAssessments.size) * 100
@@ -426,10 +435,13 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
             {
               certifications,
               installations: regionInstalls[region] || 0,
-              conversionRate: ((regionInstalls[region] || 0) / certifications * 100).toFixed(2)
-            }
+              conversionRate: (
+                ((regionInstalls[region] || 0) / certifications) *
+                100
+              ).toFixed(2),
+            },
           ])
-        )
+        ),
       },
       revenue: {
         monthlyRecurringRevenue: monthlyRevenue.toFixed(2),
