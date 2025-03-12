@@ -7,6 +7,7 @@ import { generateMetrics } from "./metrics";
 import Loader from "./Loader";
 import Dashboard from "./Dashboard";
 import { generateQualityMetricsCohort } from "./cohortAnalysis";
+import EmployeePerformanceTable from "./EmployeePerformanceTable";
 
 // Styled components
 const AppContainer = styled.div`
@@ -154,6 +155,10 @@ function App() {
       // Convert parsed data back to CSV format for the generateMetrics function
       const csv = Papa.unparse(parsedData);
       const metricsResult = generateMetrics(csv, monthlyPrice);
+      metricsResult.rawData = parsedData;
+
+      // Add quality cohort analysis
+      metricsResult.qualityCohort = generateQualityMetricsCohort(csv);
 
       // Add quality cohort analysis
       metricsResult.qualityCohort = generateQualityMetricsCohort(csv);
