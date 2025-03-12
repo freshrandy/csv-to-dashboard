@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ComposedChart,
   Line,
@@ -11,18 +11,25 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const TechnicianQualityChart = ({ cohortData, topTechnicians = 10 }) => {
+const TechnicianQualityChart = ({ cohortData }) => {
   const { weeklyData, employeeMetrics, teamStats } = cohortData;
 
-  // Get top technicians by installation count
-  const topTechEmails = Object.entries(employeeMetrics)
+  // Filter out test users with @routethis.com emails
+  const filteredEmployeeMetrics = Object.entries(employeeMetrics)
+    .filter(([email]) => !email.includes("@routethis.com"))
+    .reduce((acc, [email, metrics]) => {
+      acc[email] = metrics;
+      return acc;
+    }, {});
+
+  // Get all technicians sorted by installation count
+  const techEmails = Object.entries(filteredEmployeeMetrics)
     .sort((a, b) => b[1].totalInstallations - a[1].totalInstallations)
-    .slice(0, topTechnicians)
     .map(([email]) => email);
 
   // State to track which technicians are visible
   const [visibleTechs, setVisibleTechs] = useState(
-    topTechEmails.reduce((acc, email) => {
+    techEmails.reduce((acc, email) => {
       acc[email] = false; // All technicians OFF by default
       return acc;
     }, {})
@@ -34,7 +41,7 @@ const TechnicianQualityChart = ({ cohortData, topTechnicians = 10 }) => {
     targetScore: "#00BA69",
     technicians: {
       // Assign colors to each technician
-      ...topTechEmails.reduce((acc, email, index) => {
+      ...techEmails.reduce((acc, email, index) => {
         const colorOptions = [
           "#8884d8",
           "#82ca9d",
@@ -52,10 +59,36 @@ const TechnicianQualityChart = ({ cohortData, topTechnicians = 10 }) => {
   };
 
   // Get technician display names
-  const technicianNames = topTechEmails.reduce((acc, email) => {
-    acc[email] = employeeMetrics[email].displayName;
+  const technicianNames = techEmails.reduce((acc, email) => {
+    acc[email] = filteredEmployeeMetrics[email].displayName;
     return acc;
   }, {});
+
+  // Show all technicians
+  const showAllTechnicians = () => {
+    const newVisibility = {};
+    techEmails.forEach((email) => {
+      newVisibility[email] = true;
+    });
+    setVisibleTechs(newVisibility);
+  };
+
+  // Hide all technicians
+  const hideAllTechnicians = () => {
+    const newVisibility = {};
+    techEmails.forEach((email) => {
+      newVisibility[email] = false;
+    });
+    setVisibleTechs(newVisibility);
+  };
+
+  // Toggle single technician
+  const toggleTechnician = (email) => {
+    setVisibleTechs((prev) => ({
+      ...prev,
+      [email]: !prev[email],
+    }));
+  };
 
   // Custom tooltip to show both quality score and installation count
   const CustomTooltip = ({ active, payload, label }) => {
@@ -168,26 +201,37 @@ const TechnicianQualityChart = ({ cohortData, topTechnicians = 10 }) => {
             </div>
           </div>
 
-          {/* Technician toggles */}
+          {/* Technician toggles with Show All / Hide All buttons */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">
-              Show/Hide Top 10 Employees:
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {topTechEmails.map((email) => (
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-medium text-gray-700">
+                Show/Hide Employees ({techEmails.length} total):
+              </h3>
+              <div className="space-x-2">
+                <button
+                  className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200"
+                  onClick={showAllTechnicians}
+                >
+                  Show All
+                </button>
+                <button
+                  className="px-3 py-1 text-xs bg-gray-100 text-gray-800 rounded-full hover:bg-gray-200"
+                  onClick={hideAllTechnicians}
+                >
+                  Hide All
+                </button>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 border border-gray-200 rounded">
+              {techEmails.map((email) => (
                 <button
                   key={`toggle-${email}`}
-                  className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                  className={`px-3 py-1 text-xs rounded-full transition-colors ${
                     visibleTechs[email]
                       ? "bg-blue-100 text-blue-800 border border-blue-200"
                       : "bg-gray-100 text-gray-500 border border-gray-200"
                   }`}
-                  onClick={() =>
-                    setVisibleTechs((prev) => ({
-                      ...prev,
-                      [email]: !prev[email],
-                    }))
-                  }
+                  onClick={() => toggleTechnician(email)}
                 >
                   <div className="flex items-center">
                     <div
@@ -279,7 +323,7 @@ const TechnicianQualityChart = ({ cohortData, topTechnicians = 10 }) => {
           />
 
           {/* Lines for each technician's quality score */}
-          {topTechEmails.map(
+          {techEmails.map(
             (email) =>
               visibleTechs[email] && (
                 <Line
@@ -298,7 +342,7 @@ const TechnicianQualityChart = ({ cohortData, topTechnicians = 10 }) => {
           )}
 
           {/* Bars for installation counts */}
-          {topTechEmails.map(
+          {techEmails.map(
             (email) =>
               visibleTechs[email] && (
                 <Bar
@@ -315,6 +359,15 @@ const TechnicianQualityChart = ({ cohortData, topTechnicians = 10 }) => {
           )}
         </ComposedChart>
       </ResponsiveContainer>
+
+      {/* Display which employees are currently being shown */}
+      <div className="mt-4 text-sm text-gray-500">
+        <p>
+          Currently showing{" "}
+          {Object.values(visibleTechs).filter((v) => v).length} of{" "}
+          {techEmails.length} employees.
+        </p>
+      </div>
     </div>
   );
 };
