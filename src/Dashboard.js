@@ -12,6 +12,7 @@ import {
 
 import TechnicianQualityChart from "./TechnicianQualityChart";
 import EmployeePerformanceTable from "./EmployeePerformanceTable";
+import EmployeeQualityCohortTable from "./EmployeeQualityCohortTable";
 
 const Dashboard = ({ metrics }) => {
   // Exit early if no metrics
@@ -786,6 +787,13 @@ const Dashboard = ({ metrics }) => {
       {metrics.qualityCohort && (
         <div className="mt-8">
           <TechnicianQualityChart cohortData={metrics.qualityCohort} />
+        </div>
+      )}
+
+      {/* Employee Quality Cohort Analysis */}
+      {metrics.rawData && (
+        <div className="mt-8">
+          <EmployeeQualityCohortTable csvData={metrics.rawData} />
         </div>
       )}
 

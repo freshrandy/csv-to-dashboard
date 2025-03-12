@@ -8,6 +8,7 @@ import Loader from "./Loader";
 import Dashboard from "./Dashboard";
 import { generateQualityMetricsCohort } from "./cohortAnalysis";
 import EmployeePerformanceTable from "./EmployeePerformanceTable";
+import EmployeeQualityCohortTable from "./EmployeeQualityCohortTable";
 
 // Styled components
 const AppContainer = styled.div`
