@@ -277,20 +277,7 @@ function App() {
         <>
           <h3>Metrics Generated</h3>
           <Button onClick={downloadJson}>Download JSON</Button>
-          <div className="mt-4 flex gap-4">
-            <Button
-              onClick={() => {
-                const element = document.getElementById("dashboard-section");
-                element.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              View Dashboard
-            </Button>
-          </div>
-          <JsonPreview>{JSON.stringify(metrics, null, 2)}</JsonPreview>
-
           <div id="dashboard-section" className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">Installation Dashboard</h2>
             <Dashboard metrics={metrics} />
           </div>
         </>

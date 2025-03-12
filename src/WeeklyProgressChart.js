@@ -58,7 +58,7 @@ const WeeklyProgressChart = ({ weeklyData }) => {
     },
     uniqueHomes: {
       color: Colors.electricBlue,
-      label: "Unique Homes Addressed",
+      label: "Unique Homes Assessed",
     },
   };
 
