@@ -84,6 +84,10 @@ export function generateEmployeeCohortAnalysis(csvData, cohorts) {
       return;
 
     const email = row["Employee Email"];
+
+    // Skip @routethis.com email addresses
+    if (email.includes("@routethis.com")) return;
+
     const date = new Date(row["Date "]);
 
     if (isNaN(date.getTime())) return; // Skip invalid dates
@@ -102,6 +106,9 @@ export function generateEmployeeCohortAnalysis(csvData, cohorts) {
 
   // Now assign employees to cohorts based on their first scan date
   Object.entries(employeeData).forEach(([email, scans]) => {
+    // Skip @routethis.com email addresses (second check to be safe)
+    if (email.includes("@routethis.com")) return;
+
     // Sort scans chronologically
     const sortedScans = [...scans].sort((a, b) => a.date - b.date);
 
@@ -143,6 +150,9 @@ export function generateEmployeeCohortAnalysis(csvData, cohorts) {
 
     // Process each employee in this cohort
     employeesInCohort.forEach((email) => {
+      // Skip @routethis.com email addresses (third check for thoroughness)
+      if (email.includes("@routethis.com")) return;
+
       // Find which specific entry in employeeCohorts matches our current cohort
       const cohortEntry = employeeCohorts[email].find(
         (entry) => entry.cohortId === cohort.id

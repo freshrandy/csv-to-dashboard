@@ -198,10 +198,6 @@ const EmployeeQualityCohortTable = ({ csvData }) => {
       <h2 className="text-xl font-bold mb-4">
         Employee Quality Cohort Analysis
       </h2>
-      <p className="mb-4 text-gray-600">
-        This table shows how employee quality of install scores change over time
-        by cohort. Define your own cohorts using the form below.
-      </p>
 
       {/* Cohort Creation Form */}
       <div className="mb-6 bg-blue-50 p-4 rounded-lg">
@@ -505,22 +501,18 @@ const EmployeeQualityCohortTable = ({ csvData }) => {
         <h3 className="text-lg font-medium mb-2">How to Use This Table</h3>
         <ul className="list-disc pl-5 space-y-2 text-gray-700">
           <li>
-            Create up to 4 custom cohorts by defining a label and date range
+            Create up to 4 custom cohorts by defining a label and date range.
           </li>
           <li>
             Each cohort will include employees who had their first scan within
-            the specified date range
+            the specified date range.
           </li>
           <li>
-            The table shows progress by weeks since each employee's first scan
+            The table shows progress by weeks since each employee's first scan.
           </li>
           <li>
             Cell values show the average quality of install score percentage for
             that cohort in that week
-          </li>
-          <li>
-            Cell colors indicate performance: green = good (≥75%), yellow =
-            needs improvement, red = poor
           </li>
         </ul>
       </div>
