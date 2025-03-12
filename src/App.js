@@ -113,6 +113,7 @@ function App() {
   });
 
   const parseCSV = (file) => {
+    console.log("Starting CSV parsing, setting isProcessing to true");
     setIsProcessing(true);
 
     Papa.parse(file, {
@@ -127,7 +128,13 @@ function App() {
 
         // Set parsed data
         setParsedData(results.data);
-        setIsProcessing(false);
+
+        // Add a slight delay before setting isProcessing to false
+        // This ensures the loader has time to render
+        setTimeout(() => {
+          console.log("CSV parsing complete, setting isProcessing to false");
+          setIsProcessing(false);
+        }, 300);
 
         // Show a warning about missing data
         if (!hasAddresses) {
@@ -164,7 +171,15 @@ function App() {
       metricsResult.qualityCohort = generateQualityMetricsCohort(csv);
 
       setMetrics(metricsResult);
-      setIsProcessing(false);
+
+      // Add a slight delay before setting isProcessing to false
+      // This ensures the loader has time to render
+      setTimeout(() => {
+        console.log(
+          "Metrics generation complete, setting isProcessing to false"
+        );
+        setIsProcessing(false);
+      }, 300);
     } catch (error) {
       console.error("Error generating metrics:", error);
       setIsProcessing(false);
@@ -233,11 +248,26 @@ function App() {
           </div>
 
           {isProcessing ? (
-            <Loader />
+            <>
+              {console.log("Rendering loader component")}
+              <div className="mt-4 p-2 border border-gray-300 rounded bg-gray-50">
+                <p className="mb-2 text-gray-600">
+                  Processing data, please wait...
+                </p>
+                <Loader />
+              </div>
+            </>
           ) : (
-            <Button onClick={processMetrics} disabled={!parsedData}>
-              Generate Metrics
-            </Button>
+            <>
+              {console.log("Rendering generate metrics button")}
+              <Button
+                onClick={processMetrics}
+                disabled={!parsedData}
+                className="mt-4"
+              >
+                Generate Metrics
+              </Button>
+            </>
           )}
         </FileInfo>
       )}
