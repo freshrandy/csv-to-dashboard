@@ -6,6 +6,7 @@ import EmployeeQualityCohortTable from "./EmployeeQualityCohortTable";
 import ConversionRateChart from "./ConversionRateChart";
 import RegionalPerformanceComparison from "./RegionalPerformanceComparison";
 import AssessmentQualityIndicators from "./AssessmentQualityIndicators";
+import RevenueMetrics from "./RevenueMetrics";
 
 const Dashboard = ({ metrics }) => {
   // Exit early if no metrics
@@ -419,60 +420,15 @@ const Dashboard = ({ metrics }) => {
               </span>
             </div>
           </div>
-
-          {/* Revenue Impact Section - with LTV */}
-          <div className="mt-4">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-sm font-medium text-gray-700">
-                Revenue Impact (Monthly)
-              </span>
-              <span
-                className="text-sm font-medium"
-                style={{ color: colors.jade }}
-              >
-                ${activityMetrics.revenueImpact.monthly}
-              </span>
-            </div>
-            {/* 1 Year LTV */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">1 Year LTV</span>
-              <span
-                className="text-sm font-medium"
-                style={{ color: colors.jade }}
-              >
-                ${activityMetrics.revenueImpact.yearOne}
-              </span>
-            </div>
-            {/* 2 Year LTV */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">2 Year LTV</span>
-              <span
-                className="text-sm font-medium"
-                style={{ color: colors.jade }}
-              >
-                ${activityMetrics.revenueImpact.yearTwo}
-              </span>
-            </div>
-            {/* 3 Year LTV */}
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">3 Year LTV</span>
-              <span
-                className="text-sm font-medium"
-                style={{ color: colors.jade }}
-              >
-                ${activityMetrics.revenueImpact.yearThree}
-              </span>
-            </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>
-                Based on ${monthlyPrice.toFixed(2)}/month per installation
-              </span>
-              <span>
-                {activityMetrics.accessPoints.installed} installations
-              </span>
-            </div>
-          </div>
         </div>
+
+        {/* Revenue Metrics as a standalone section */}
+        <RevenueMetrics
+          revenueData={activityMetrics.revenueImpact}
+          monthlyPrice={monthlyPrice}
+          installationCount={activityMetrics.accessPoints.installed}
+          colors={colors}
+        />
 
         {/* Weekly Progress Chart */}
         <WeeklyProgressChart weeklyData={weeklyData} />

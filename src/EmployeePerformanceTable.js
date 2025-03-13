@@ -351,7 +351,7 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
   if (isLoading) {
     return (
       <div className="p-4 bg-white rounded-lg shadow">
-        <h2 className="text-xl font-bold mb-4">
+        <h2 className="text-lg font-medium mb-4" style={{ color: Colors.ash }}>
           Employee Performance Rankings
         </h2>
         <div className="flex justify-center items-center h-64">
