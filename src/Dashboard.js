@@ -14,6 +14,7 @@ import WeeklyProgressChart from "./WeeklyProgressChart";
 import TechnicianQualityChart from "./TechnicianQualityChart";
 import EmployeePerformanceTable from "./EmployeePerformanceTable";
 import EmployeeQualityCohortTable from "./EmployeeQualityCohortTable";
+import ConversionRateChart from "./ConversionRateChart";
 
 const Dashboard = ({ metrics }) => {
   // Exit early if no metrics
@@ -491,48 +492,8 @@ const Dashboard = ({ metrics }) => {
         {/* Weekly Progress Chart */}
         <WeeklyProgressChart weeklyData={weeklyData} />
 
-        {/* Conversion Rate Chart */}
-        <div className="bg-white p-5 rounded-lg shadow-md">
-          <h2
-            className="text-lg font-medium mb-4"
-            style={{ color: colors.ash }}
-          >
-            Conversion Rate Trend 📈
-          </h2>
-          <div className="h-64">
-            {weeklyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={weeklyData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="week"
-                    tick={{ fontSize: 10 }}
-                    angle={-45}
-                    textAnchor="end"
-                    height={70}
-                  />
-                  <YAxis domain={[0, 100]} />
-                  <Tooltip formatter={(value) => [`${value}%`, "Conversion"]} />
-                  <Legend />
-                  <Bar
-                    dataKey="conversion"
-                    name="Conversion %"
-                    fill={colors.electricBlue}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-gray-500">
-                  Insufficient data for conversion trend visualization
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Conversion Rate Chart - Using the new component */}
+        <ConversionRateChart weeklyData={weeklyData} colors={colors} />
 
         {/* Regional Performance */}
         <div className="bg-white p-5 rounded-lg shadow-md">
