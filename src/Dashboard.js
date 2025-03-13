@@ -1,20 +1,11 @@
 import React from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-
 import WeeklyProgressChart from "./WeeklyProgressChart";
 import TechnicianQualityChart from "./TechnicianQualityChart";
 import EmployeePerformanceTable from "./EmployeePerformanceTable";
 import EmployeeQualityCohortTable from "./EmployeeQualityCohortTable";
 import ConversionRateChart from "./ConversionRateChart";
+import RegionalPerformanceComparison from "./RegionalPerformanceComparison";
+import AssessmentQualityIndicators from "./AssessmentQualityIndicators";
 
 const Dashboard = ({ metrics }) => {
   // Exit early if no metrics
@@ -206,9 +197,6 @@ const Dashboard = ({ metrics }) => {
   // Regional Performance Data - from metrics
   const regionalData = [];
 
-  // Add debug logging to see what data is available
-  console.log("Metrics conversion data:", metricsData.conversion);
-
   // Check if we have the enhanced region data from our metrics.js update
   if (metricsData.conversion.regionalData) {
     console.log("Using actual region data from metrics");
@@ -248,9 +236,6 @@ const Dashboard = ({ metrics }) => {
 
   // Sort by certifications (highest first)
   regionalData.sort((a, b) => b.certifications - a.certifications);
-
-  // Log for debugging
-  console.log("Regional data for display:", regionalData);
 
   // Speed Test Performance
   const speedTestData = [
@@ -492,228 +477,21 @@ const Dashboard = ({ metrics }) => {
         {/* Weekly Progress Chart */}
         <WeeklyProgressChart weeklyData={weeklyData} />
 
-        {/* Conversion Rate Chart - Using the new component */}
+        {/* Conversion Rate Chart */}
         <ConversionRateChart weeklyData={weeklyData} colors={colors} />
 
-        {/* Regional Performance */}
-        <div className="bg-white p-5 rounded-lg shadow-md">
-          <h2
-            className="text-lg font-medium mb-4"
-            style={{ color: colors.ash }}
-          >
-            Regional Performance Comparison 🗺️
-          </h2>
-          <div className="overflow-x-auto">
-            {regionalData.length > 0 ? (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Region
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Total Certifications
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Installations
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Conversion Rate
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {regionalData.map((region, index) => (
-                    <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {region.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
-                        {region.certifications}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
-                        {region.installations}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                        <span
-                          className="px-2 py-1 text-xs rounded-full"
-                          style={{
-                            backgroundColor:
-                              region.conversion > 20
-                                ? colors.jade
-                                : colors.cloudGrey,
-                            color: region.conversion > 20 ? "white" : "black",
-                          }}
-                        >
-                          {region.conversion}%
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="flex items-center justify-center p-8">
-                <p className="text-gray-500">
-                  Regional data unavailable or insufficient
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Regional Performance - Now using the componentized version */}
+        <RegionalPerformanceComparison
+          regionalData={regionalData}
+          colors={colors}
+        />
 
-        {/* Test Performance Metrics (split into two columns for pie charts) */}
-        <div className="bg-white p-5 rounded-lg shadow-md">
-          <h2
-            className="text-lg font-medium mb-4"
-            style={{ color: colors.ash }}
-          >
-            Assessment Quality Indicators 📊
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Speed Test Success Rate */}
-            <div className="flex flex-col items-center justify-center">
-              <h3 className="text-sm font-medium mb-4 text-gray-700">
-                Speed Test Success Rate
-              </h3>
-              <div className="flex flex-col items-center space-y-4">
-                {/* Simple donut chart representation */}
-                <div className="relative w-40 h-40">
-                  <svg viewBox="0 0 100 100" className="w-full h-full">
-                    {/* Background circle */}
-                    <circle cx="50" cy="50" r="40" fill="#f3f4f6" />
-
-                    {/* Success segment - creates a donut chart effect */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="transparent"
-                      stroke={colors.jade}
-                      strokeWidth="20"
-                      strokeDasharray={`${speedTestData[0].value * 2.51} 251`}
-                      transform="rotate(-90 50 50)"
-                    />
-
-                    {/* Inner circle to create donut effect */}
-                    <circle cx="50" cy="50" r="30" fill="white" />
-
-                    {/* Text in the middle */}
-                    <text
-                      x="50"
-                      y="50"
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize="16"
-                      fontWeight="bold"
-                      fill={colors.jade}
-                    >
-                      {speedTestData[0].value}%
-                    </text>
-                  </svg>
-                </div>
-
-                {/* Legend */}
-                <div className="flex flex-col space-y-2 text-sm">
-                  <div className="flex items-center">
-                    <div
-                      className="w-4 h-4 mr-2"
-                      style={{ backgroundColor: colors.jade }}
-                    ></div>
-                    <span>Above 80% of Plan: {speedTestData[0].value}%</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div
-                      className="w-4 h-4 mr-2"
-                      style={{ backgroundColor: "#EF4444" }}
-                    ></div>
-                    <span>Below 80% of Plan: {speedTestData[1].value}%</span>
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-center text-gray-500 mt-4">
-                Percentage of tests achieving at least 80% of plan speed
-              </p>
-            </div>
-
-            {/* Multi-Floor Assessment Rate */}
-            <div className="flex flex-col items-center justify-center">
-              <h3 className="text-sm font-medium mb-4 text-gray-700">
-                Multi-Floor Assessment Rate
-              </h3>
-              <div className="flex flex-col items-center space-y-4">
-                {/* Simple donut chart representation */}
-                <div className="relative w-40 h-40">
-                  <svg viewBox="0 0 100 100" className="w-full h-full">
-                    {/* Background circle */}
-                    <circle cx="50" cy="50" r="40" fill="#f3f4f6" />
-
-                    {/* Success segment */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="transparent"
-                      stroke={colors.electricBlue}
-                      strokeWidth="20"
-                      strokeDasharray={`${floorData[0].value * 2.51} 251`}
-                      transform="rotate(-90 50 50)"
-                    />
-
-                    {/* Inner circle to create donut effect */}
-                    <circle cx="50" cy="50" r="30" fill="white" />
-
-                    {/* Text in the middle */}
-                    <text
-                      x="50"
-                      y="50"
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize="16"
-                      fontWeight="bold"
-                      fill={colors.electricBlue}
-                    >
-                      {floorData[0].value}%
-                    </text>
-                  </svg>
-                </div>
-
-                {/* Legend */}
-                <div className="flex flex-col space-y-2 text-sm">
-                  <div className="flex items-center">
-                    <div
-                      className="w-4 h-4 mr-2"
-                      style={{ backgroundColor: colors.electricBlue }}
-                    ></div>
-                    <span>Multi-Floor Assessments: {floorData[0].value}%</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div
-                      className="w-4 h-4 mr-2"
-                      style={{ backgroundColor: colors.cloudGrey }}
-                    ></div>
-                    <span>Single-Floor Assessments: {floorData[1].value}%</span>
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-center text-gray-500 mt-4">
-                Percentage of assessments covering multiple floors
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Assessment Quality Indicators - */}
+        <AssessmentQualityIndicators
+          speedTestData={speedTestData}
+          floorData={floorData}
+          colors={colors}
+        />
       </div>
 
       {/* Employee Performance Table */}
