@@ -175,7 +175,7 @@ const TechnicianQualityChart = ({ cohortData }) => {
   return (
     <div className="p-4 bg-white rounded-lg shadow">
       <h2 className="text-xl font-bold mb-4">
-        Employee Quality Of Install Over Time
+        Employee Quality Of Install Over Time 📈
       </h2>
 
       <div className="mb-6">

@@ -1,4 +1,5 @@
 import React from "react";
+import Colors from "./Colors";
 
 /**
  * Assessment Quality Indicators Component
@@ -12,7 +13,7 @@ import React from "react";
 const AssessmentQualityIndicators = ({ speedTestData, floorData, colors }) => {
   return (
     <div className="bg-white p-5 rounded-lg shadow-md">
-      <h2 className="text-lg font-medium mb-4" style={{ color: colors.ash }}>
+      <h2 className="text-xl font-bold mb-4" style={{ color: Colors.ash }}>
         Assessment Quality Indicators 📊
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

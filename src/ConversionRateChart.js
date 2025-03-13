@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
+import Colors from "./Colors";
 
 /**
  * Conversion Rate Chart Component
@@ -54,7 +55,7 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
   return (
     <div className="bg-white p-5 rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium" style={{ color: colors.ash }}>
+        <h2 className="text-xl font-bold mb-4" style={{ color: Colors.ash }}>
           Conversion Rate Trend 📈
         </h2>
 

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Colors from "./Colors";
 
 /**
  * Regional Performance Comparison Component
@@ -50,7 +51,7 @@ const RegionalPerformanceComparison = ({ regionalData, colors }) => {
 
   return (
     <div className="bg-white p-5 rounded-lg shadow-md">
-      <h2 className="text-lg font-medium mb-4" style={{ color: colors.ash }}>
+      <h2 className="text-xl font-bold mb-4" style={{ color: Colors.ash }}>
         Regional Performance Comparison 🗺️
       </h2>
 

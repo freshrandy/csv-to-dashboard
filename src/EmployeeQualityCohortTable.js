@@ -196,7 +196,7 @@ const EmployeeQualityCohortTable = ({ csvData }) => {
   return (
     <div className="p-4 bg-white rounded-lg shadow">
       <h2 className="text-xl font-bold mb-4">
-        Employee Quality Cohort Analysis
+        Employee Quality Cohort Analysis 👥
       </h2>
 
       {/* Cohort Creation Form */}

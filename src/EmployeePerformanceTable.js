@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import _ from "lodash";
+import Colors from "./Colors";
 
 const EmployeePerformanceTable = ({ data: csvData }) => {
   const [data, setData] = useState([]);
@@ -376,7 +377,9 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
 
   return (
     <div className="p-4 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-4">Employee Performance Rankings</h2>
+      <h2 className="text-xl font-bold mb-4">
+        Employee Performance Rankings 🏆
+      </h2>
 
       <div className="mb-4 bg-gray-50 p-4 rounded-lg">
         <div className="flex justify-between items-center mb-4">

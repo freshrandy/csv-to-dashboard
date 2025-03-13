@@ -286,10 +286,7 @@ const Dashboard = ({ metrics }) => {
       <div className="flex flex-col gap-6">
         {/* Activity Metrics Section - Top Level Stats */}
         <div className="bg-white p-5 rounded-lg shadow-md">
-          <h2
-            className="text-lg font-medium mb-4"
-            style={{ color: colors.ash }}
-          >
+          <h2 className="text-xl font-bold mb-4" style={{ color: colors.ash }}>
             Activity Metrics 📊
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

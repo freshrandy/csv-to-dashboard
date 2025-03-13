@@ -64,7 +64,7 @@ const WeeklyProgressChart = ({ weeklyData }) => {
 
   return (
     <div className="bg-white p-5 rounded-lg shadow-md">
-      <h2 className="text-lg font-medium mb-4" style={{ color: Colors.ash }}>
+      <h2 className="text-xl font-bold mb-4" style={{ color: Colors.ash }}>
         Weekly Progress 📅
       </h2>
 
