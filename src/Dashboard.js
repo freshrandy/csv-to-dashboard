@@ -116,71 +116,154 @@ const Dashboard = ({ metrics }) => {
   const weeklyData = (() => {
     const weeklyDistribution = metricsData.temporal.weeklyDistribution;
 
-    // If we don't have weekly data, return a placeholder
+    // If we don't have weekly data, return an empty array
     if (!weeklyDistribution || Object.keys(weeklyDistribution).length === 0) {
-      return [
-        {
-          week: "Jan 1 - Jan 7",
-          completed: 10,
-          installations: 4,
-          conversion: 40.0,
-          uniqueHomes: 8,
-        },
-        {
-          week: "Jan 8 - Jan 14",
-          completed: 13,
-          installations: 5,
-          conversion: 38.5,
-          uniqueHomes: 11,
-        },
-        {
-          week: "Jan 15 - Jan 21",
-          completed: 8,
-          installations: 4,
-          conversion: 50.0,
-          uniqueHomes: 7,
-        },
-        {
-          week: "Jan 22 - Jan 28",
-          completed: 11,
-          installations: 7,
-          conversion: 63.6,
-          uniqueHomes: 9,
-        },
-      ];
+      return [];
     }
 
     // Process the real weekly data
     const processedData = [];
 
+    // Dynamically determine the maximum date from the summary or raw data
+    const findMaxDate = () => {
+      // Try to extract from the date range in the summary
+      if (summary.dateRange) {
+        const dateRangeParts = summary.dateRange.split(" to ");
+        if (dateRangeParts.length > 1) {
+          try {
+            return new Date(dateRangeParts[1]);
+          } catch (e) {
+            console.warn("Could not parse date range end date:", e);
+          }
+        }
+      }
+
+      // If that doesn't work, find the maximum date in the raw data
+      if (metrics.rawData && metrics.rawData.length > 0) {
+        let maxDate = new Date(0); // Start with oldest possible date
+
+        metrics.rawData.forEach((entry) => {
+          const dateStr = entry["Date "] || entry.Date;
+          if (dateStr) {
+            try {
+              const entryDate = new Date(dateStr);
+              if (!isNaN(entryDate) && entryDate > maxDate) {
+                maxDate = entryDate;
+              }
+            } catch (e) {
+              // Skip invalid dates
+            }
+          }
+        });
+
+        if (maxDate.getTime() > 0) {
+          return maxDate;
+        }
+      }
+
+      // Fallback to current date minus one day if no valid dates found
+      const today = new Date();
+      today.setDate(today.getDate() - 1);
+      return today;
+    };
+
+    const maxDate = findMaxDate();
+    console.log("Maximum date from data:", maxDate.toISOString().split("T")[0]);
+
     // Sort the week keys to ensure chronological order
     const sortedWeeks = Object.keys(weeklyDistribution).sort();
 
-    // Calculate the average conversion rate for estimation
-    const avgConversionRate =
-      parseFloat(metricsData.conversion.homeConversionRate) / 100;
+    // Use the raw data that's already available in metrics
+    const rawData = metrics.rawData || [];
 
     // Process each week
     sortedWeeks.forEach((weekKey) => {
       // Get the week label
       const weekLabel = formatWeekLabel(weekKey);
 
+      // Parse the week dates to determine if this week should be included
+      try {
+        const dateParts = weekLabel.split(" - ");
+        if (dateParts.length === 2) {
+          // Extract end date of the week
+          const endDateStr = dateParts[1];
+          // Add the current year since it's missing in the label
+          const currentYear = new Date().getFullYear();
+          const endDate = new Date(`${endDateStr} ${currentYear}`);
+
+          // Skip weeks where the end date is after our max date
+          if (endDate > maxDate) {
+            console.log(
+              `Skipping week ${weekLabel} as it extends beyond max date`
+            );
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Error parsing week dates:", e);
+        // If there's an error parsing, we'll include the week to be safe
+      }
+
       // Get the number of scans for this week
       const scans = weeklyDistribution[weekKey];
 
-      // Estimate installations based on overall conversion rate with slight variation
-      const variationFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
-      const installations = Math.round(
-        scans * avgConversionRate * variationFactor
-      );
+      // For installations and unique homes, let's use real data if available
+      let installations = 0;
+      let uniqueHomes = 0;
+
+      // Use the already-calculated conversion rate
+      const avgConversionRate =
+        parseFloat(metricsData.conversion.homeConversionRate) / 100;
+
+      // If raw data is available, use it for more accurate calculations
+      if (rawData && rawData.length > 0) {
+        // Get entries for this week from the raw data
+        const weekData = rawData.filter((entry) => {
+          if (!entry["Date "] && !entry.Date) return false;
+          const entryDate = new Date(entry["Date "] || entry.Date);
+          if (isNaN(entryDate)) return false; // Skip invalid dates
+
+          // Skip data after max date
+          if (entryDate > maxDate) return false;
+
+          const [year, weekCode] = weekKey.split("-");
+          const weekNum = parseInt(weekCode.substring(1));
+          return (
+            getWeekNumber(entryDate) === weekNum &&
+            entryDate.getFullYear().toString() === year
+          );
+        });
+
+        // Count actual installations (mesh nodes > 0)
+        installations = weekData.filter(
+          (entry) =>
+            entry["Mesh Nodes Installed"] && entry["Mesh Nodes Installed"] > 0
+        ).length;
+
+        // Count unique addresses for this week if we have address data
+        if (summary.hasAddresses) {
+          const uniqueAddresses = new Set();
+          weekData.forEach((entry) => {
+            if (entry.Address) {
+              const addressKey = `${entry.Address}, ${entry.City || ""}, ${
+                entry["State/Province"] || ""
+              }`;
+              uniqueAddresses.add(addressKey);
+            }
+          });
+          uniqueHomes = uniqueAddresses.size;
+        } else {
+          // If no address data, estimate based on scans
+          uniqueHomes = Math.round(scans * 0.8);
+        }
+      } else {
+        // If raw data is not available, use calculations based on the avg conversion rate
+        installations = Math.round(scans * avgConversionRate);
+        uniqueHomes = Math.round(scans * 0.8);
+      }
 
       // Calculate conversion rate
       const conversion = scans > 0 ? (installations / scans) * 100 : 0;
-
-      // Estimate unique homes addressed (typically less than total scans)
-      // Assume 80-95% of scans are unique homes with some variation
-      const uniqueHomesVariation = 0.8 + Math.random() * 0.15; // 0.8 to 0.95
-      const uniqueHomes = Math.round(scans * uniqueHomesVariation);
 
       // Create the week data point
       processedData.push({
@@ -194,6 +277,26 @@ const Dashboard = ({ metrics }) => {
 
     return processedData;
   })();
+
+  // Helper function to get ISO week number from a date - add if it doesn't exist already
+  function getWeekNumber(d) {
+    const date = new Date(d);
+    date.setHours(0, 0, 0, 0);
+    // Thursday in current week decides the year
+    date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+    // January 4 is always in week 1
+    const week1 = new Date(date.getFullYear(), 0, 4);
+    // Adjust to Thursday in week 1 and count number of weeks from date to week1
+    return (
+      1 +
+      Math.round(
+        ((date.getTime() - week1.getTime()) / 86400000 -
+          3 +
+          ((week1.getDay() + 6) % 7)) /
+          7
+      )
+    );
+  }
 
   // Regional Performance Data - from metrics
   const regionalData = [];

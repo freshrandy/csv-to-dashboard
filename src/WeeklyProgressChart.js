@@ -1,3 +1,5 @@
+// Updated WeeklyProgressChart.js to handle empty or undefined data
+
 import React, { useState } from "react";
 import {
   BarChart,
@@ -31,20 +33,8 @@ const WeeklyProgressChart = ({ weeklyData }) => {
     }));
   };
 
-  // Process data to include unique homes if not already present
-  const processedData = weeklyData.map((week) => {
-    // If uniqueHomes is not already in the data, estimate it based on other metrics
-    if (!week.uniqueHomes) {
-      // Estimate unique homes as ~70-90% of scans (with some variation)
-      const variationFactor = 0.7 + Math.random() * 0.2; // 0.7 to 0.9
-      const uniqueHomes = Math.round(week.completed * variationFactor);
-      return {
-        ...week,
-        uniqueHomes: uniqueHomes,
-      };
-    }
-    return week;
-  });
+  // Make sure we have valid data to work with
+  const validData = Array.isArray(weeklyData) && weeklyData.length > 0;
 
   // Define colors and labels for each metric
   const metricConfig = {
@@ -96,10 +86,10 @@ const WeeklyProgressChart = ({ weeklyData }) => {
       </div>
 
       <div className="h-64">
-        {processedData.length > 0 ? (
+        {validData ? (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={processedData}
+              data={weeklyData}
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
@@ -141,9 +131,9 @@ const WeeklyProgressChart = ({ weeklyData }) => {
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg">
             <p className="text-gray-500">
-              Insufficient data for weekly progress visualization
+              No data available for the selected date range
             </p>
           </div>
         )}

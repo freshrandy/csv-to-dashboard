@@ -1,3 +1,5 @@
+// Updated ConversionRateChart.js to handle empty or undefined data
+
 import React, { useState } from "react";
 import {
   BarChart,
@@ -23,6 +25,9 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
   // State for target line toggle and value
   const [showTargetLine, setShowTargetLine] = useState(false);
   const [targetConversion, setTargetConversion] = useState(50);
+
+  // Make sure we have valid data to work with
+  const validData = Array.isArray(weeklyData) && weeklyData.length > 0;
 
   // Custom tooltip to show both raw values and percentages
   const CustomTooltip = ({ active, payload, label }) => {
@@ -59,42 +64,44 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
           Conversion Rate Trend 📈
         </h2>
 
-        {/* Target Line Controls */}
-        <div className="flex items-center">
-          <label className="mr-2 text-sm font-medium text-gray-700">
-            Target Line:
-          </label>
+        {/* Target Line Controls - Only show if we have data */}
+        {validData && (
           <div className="flex items-center">
-            <button
-              onClick={() => setShowTargetLine(!showTargetLine)}
-              className={`px-2 py-1 text-xs rounded-md mr-2 ${
-                showTargetLine
-                  ? "bg-blue-100 text-blue-800 border border-blue-200"
-                  : "bg-gray-100 text-gray-500 border border-gray-200"
-              }`}
-            >
-              {showTargetLine ? "On" : "Off"}
-            </button>
-            <input
-              type="number"
-              value={targetConversion}
-              onChange={(e) =>
-                setTargetConversion(
-                  Math.max(0, Math.min(100, Number(e.target.value)))
-                )
-              }
-              disabled={!showTargetLine}
-              className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
-              min="0"
-              max="100"
-            />
-            <span className="ml-1 text-sm text-gray-500">%</span>
+            <label className="mr-2 text-sm font-medium text-gray-700">
+              Target Line:
+            </label>
+            <div className="flex items-center">
+              <button
+                onClick={() => setShowTargetLine(!showTargetLine)}
+                className={`px-2 py-1 text-xs rounded-md mr-2 ${
+                  showTargetLine
+                    ? "bg-blue-100 text-blue-800 border border-blue-200"
+                    : "bg-gray-100 text-gray-500 border border-gray-200"
+                }`}
+              >
+                {showTargetLine ? "On" : "Off"}
+              </button>
+              <input
+                type="number"
+                value={targetConversion}
+                onChange={(e) =>
+                  setTargetConversion(
+                    Math.max(0, Math.min(100, Number(e.target.value)))
+                  )
+                }
+                disabled={!showTargetLine}
+                className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                min="0"
+                max="100"
+              />
+              <span className="ml-1 text-sm text-gray-500">%</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="h-64">
-        {weeklyData.length > 0 ? (
+        {validData ? (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={weeklyData}
@@ -136,9 +143,9 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg">
             <p className="text-gray-500">
-              Insufficient data for conversion trend visualization
+              No data available for the selected date range
             </p>
           </div>
         )}

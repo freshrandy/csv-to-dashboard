@@ -14,6 +14,71 @@ import {
 const TechnicianQualityChart = ({ cohortData }) => {
   const { weeklyData, employeeMetrics, teamStats } = cohortData;
 
+  // Dynamically filter weekly data based on the maximum date from actual data
+  const filterWeeklyData = (data) => {
+    if (!data || !Array.isArray(data) || data.length === 0) return [];
+
+    // Find the maximum date from the date range in teamStats
+    const findMaxDate = () => {
+      if (teamStats && teamStats.dateRange) {
+        const dateRangeParts = teamStats.dateRange.split(" - ");
+        if (dateRangeParts.length > 1) {
+          try {
+            return new Date(dateRangeParts[1]);
+          } catch (e) {
+            console.warn("Could not parse date range end date:", e);
+          }
+        }
+      }
+
+      // Fallback to current date minus one day if no valid date found
+      const today = new Date();
+      today.setDate(today.getDate() - 1);
+      return today;
+    };
+
+    const maxDate = findMaxDate();
+    console.log(
+      "TechnicianQualityChart: Maximum date from data:",
+      maxDate.toISOString().split("T")[0]
+    );
+
+    // Filter weeks based on the maximum date
+    return data.filter((week) => {
+      // Check if the week label exists
+      if (!week.week) return false;
+
+      // Parse the week dates to determine if this week should be included
+      try {
+        const dateParts = week.week.split(" - ");
+        if (dateParts.length === 2) {
+          // Extract end date of the week
+          const endDateStr = dateParts[1];
+          // Add the current year since it's missing in the label
+          const currentYear = new Date().getFullYear();
+          const endDate = new Date(`${endDateStr} ${currentYear}`);
+
+          // Skip weeks where the end date is after our max date
+          if (endDate > maxDate) {
+            console.log(
+              `Skipping week ${week.week} as it extends beyond max date`
+            );
+            return false;
+          }
+        }
+      } catch (e) {
+        console.warn("Error parsing week dates:", e);
+        // If there's an error parsing, we'll include the week to be safe
+        return true;
+      }
+
+      return true;
+    });
+  };
+
+  // Apply our filter to weekly data
+  const filteredWeeklyData = filterWeeklyData(weeklyData);
+
   // Filter out test users with @routethis.com emails
   const filteredEmployeeMetrics = Object.entries(employeeMetrics)
     .filter(([email]) => !email.includes("@routethis.com"))
@@ -251,114 +316,122 @@ const TechnicianQualityChart = ({ cohortData }) => {
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={500}>
-        <ComposedChart
-          data={weeklyData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" opacity={0.7} />
-          <XAxis
-            dataKey="week"
-            tick={{ fontSize: 12 }}
-            angle={-45}
-            textAnchor="end"
-            height={60}
-          />
+      {filteredWeeklyData.length > 0 ? (
+        <ResponsiveContainer width="100%" height={500}>
+          <ComposedChart
+            data={filteredWeeklyData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" opacity={0.7} />
+            <XAxis
+              dataKey="week"
+              tick={{ fontSize: 12 }}
+              angle={-45}
+              textAnchor="end"
+              height={60}
+            />
 
-          {/* Y-axis for quality score (0-1 scale) */}
-          <YAxis
-            yAxisId="left"
-            domain={[0, 1]}
-            tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
-            tick={{ fontSize: 12 }}
-            label={{
-              value: "Quality Score",
-              angle: -90,
-              position: "insideLeft",
-              style: { textAnchor: "middle" },
-            }}
-          />
+            {/* Y-axis for quality score (0-1 scale) */}
+            <YAxis
+              yAxisId="left"
+              domain={[0, 1]}
+              tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
+              tick={{ fontSize: 12 }}
+              label={{
+                value: "Quality Score",
+                angle: -90,
+                position: "insideLeft",
+                style: { textAnchor: "middle" },
+              }}
+            />
 
-          {/* Y-axis for installation count */}
-          <YAxis
-            yAxisId="right"
-            orientation="right"
-            domain={[0, "dataMax + 5"]}
-            allowDecimals={false}
-            tick={{ fontSize: 12 }}
-            label={{
-              value: "Installation Count",
-              angle: 90,
-              position: "insideRight",
-              style: { textAnchor: "middle" },
-            }}
-          />
+            {/* Y-axis for installation count */}
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              domain={[0, "dataMax + 5"]}
+              allowDecimals={false}
+              tick={{ fontSize: 12 }}
+              label={{
+                value: "Installation Count",
+                angle: 90,
+                position: "insideRight",
+                style: { textAnchor: "middle" },
+              }}
+            />
 
-          <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip />} />
 
-          {/* Target quality score reference line */}
-          <ReferenceLine
-            yAxisId="left"
-            y={0.75}
-            stroke={colors.targetScore}
-            strokeDasharray="3 3"
-            label={{
-              value: "Target (75%)",
-              position: "insideBottomRight",
-              fill: colors.targetScore,
-              fontSize: 12,
-            }}
-          />
+            {/* Target quality score reference line */}
+            <ReferenceLine
+              yAxisId="left"
+              y={0.75}
+              stroke={colors.targetScore}
+              strokeDasharray="3 3"
+              label={{
+                value: "Target (75%)",
+                position: "insideBottomRight",
+                fill: colors.targetScore,
+                fontSize: 12,
+              }}
+            />
 
-          {/* Team average line */}
-          <Line
-            yAxisId="left"
-            type="monotone"
-            dataKey="teamAvg"
-            name="Team Average"
-            stroke={colors.teamAvg}
-            strokeWidth={3}
-            dot={{ r: 5 }}
-            activeDot={{ r: 8 }}
-          />
+            {/* Team average line */}
+            <Line
+              yAxisId="left"
+              type="monotone"
+              dataKey="teamAvg"
+              name="Team Average"
+              stroke={colors.teamAvg}
+              strokeWidth={3}
+              dot={{ r: 5 }}
+              activeDot={{ r: 8 }}
+            />
 
-          {/* Lines for each technician's quality score */}
-          {techEmails.map(
-            (email) =>
-              visibleTechs[email] && (
-                <Line
-                  key={`line-${email}`}
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey={email}
-                  name={technicianNames[email]}
-                  stroke={colors.technicians[email]}
-                  strokeWidth={2}
-                  connectNulls={true}
-                  dot={{ r: 4, strokeWidth: 2, fill: "white" }}
-                  activeDot={{ r: 7 }}
-                />
-              )
-          )}
+            {/* Lines for each technician's quality score */}
+            {techEmails.map(
+              (email) =>
+                visibleTechs[email] && (
+                  <Line
+                    key={`line-${email}`}
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey={email}
+                    name={technicianNames[email]}
+                    stroke={colors.technicians[email]}
+                    strokeWidth={2}
+                    connectNulls={true}
+                    dot={{ r: 4, strokeWidth: 2, fill: "white" }}
+                    activeDot={{ r: 7 }}
+                  />
+                )
+            )}
 
-          {/* Bars for installation counts */}
-          {techEmails.map(
-            (email) =>
-              visibleTechs[email] && (
-                <Bar
-                  key={`bar-${email}`}
-                  yAxisId="right"
-                  dataKey={`${email}_count`}
-                  name={`${technicianNames[email]} Installs`}
-                  fill={colors.technicians[email]}
-                  opacity={0.3}
-                  maxBarSize={20}
-                  stackId="installations"
-                />
-              )
-          )}
-        </ComposedChart>
-      </ResponsiveContainer>
+            {/* Bars for installation counts */}
+            {techEmails.map(
+              (email) =>
+                visibleTechs[email] && (
+                  <Bar
+                    key={`bar-${email}`}
+                    yAxisId="right"
+                    dataKey={`${email}_count`}
+                    name={`${technicianNames[email]} Installs`}
+                    fill={colors.technicians[email]}
+                    opacity={0.3}
+                    maxBarSize={20}
+                    stackId="installations"
+                  />
+                )
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
+          <p className="text-gray-500">
+            No data available for the selected date range
+          </p>
+        </div>
+      )}
 
       {/* Display which employees are currently being shown */}
       <div className="mt-4 text-sm text-gray-500">
