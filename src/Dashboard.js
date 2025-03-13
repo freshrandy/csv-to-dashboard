@@ -563,11 +563,13 @@ const Dashboard = ({ metrics }) => {
       )}
 
       {/* Employee Quality Cohort Analysis */}
+      {/* 
       {metrics.rawData && (
         <div className="mt-8">
           <EmployeeQualityCohortTable csvData={employeeTableData} />
         </div>
       )}
+      */}
 
       {/* Footer with gradient */}
       <div
