@@ -395,14 +395,6 @@ const Dashboard = ({ metrics }) => {
           colors={colors}
         />
 
-        {/* Revenue Metrics as a standalone section */}
-        <RevenueMetrics
-          revenueData={activityMetrics.revenueImpact}
-          monthlyPrice={monthlyPrice}
-          installationCount={activityMetrics.accessPoints.installed}
-          colors={colors}
-        />
-
         {/* Weekly Progress Chart */}
         <WeeklyProgressChart weeklyData={weeklyData} />
 
@@ -416,11 +408,11 @@ const Dashboard = ({ metrics }) => {
         />
 
         {/* Assessment Quality Indicators - */}
-        <AssessmentQualityIndicators
+        {/*<AssessmentQualityIndicators
           speedTestData={speedTestData}
           floorData={floorData}
           colors={colors}
-        />
+        />*/}
       </div>
 
       {/* Employee Performance Table */}
