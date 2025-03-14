@@ -6,7 +6,6 @@ import EmployeeQualityCohortTable from "./EmployeeQualityCohortTable";
 import ConversionRateChart from "./ConversionRateChart";
 import RegionalPerformanceComparison from "./RegionalPerformanceComparison";
 import AssessmentQualityIndicators from "./AssessmentQualityIndicators";
-import RevenueMetrics from "./RevenueMetrics";
 import ActivityMetrics from "./ActivityMetrics";
 
 const Dashboard = ({ metrics }) => {
@@ -14,7 +13,7 @@ const Dashboard = ({ metrics }) => {
   if (!metrics) return null;
 
   // Extract data from metrics
-  const { summary, metrics: metricsData, monthlyPrice = 14.99 } = metrics;
+  const { summary, metrics: metricsData } = metrics;
 
   // Fix 2025-03-11, possible spaghetti
   const employeeTableData =
@@ -72,12 +71,7 @@ const Dashboard = ({ metrics }) => {
     speedTestSuccessRate: parseFloat(
       metricsData.performance.speedTestSuccessRate
     ),
-    revenueImpact: {
-      monthly: parseFloat(metricsData.revenue.monthlyRecurringRevenue),
-      yearOne: parseFloat(metricsData.revenue.yearOneLTV),
-      yearTwo: parseFloat(metricsData.revenue.yearTwoLTV),
-      yearThree: parseFloat(metricsData.revenue.yearThreeLTV),
-    },
+    // Revenue impact section removed
   };
 
   // Format week keys into readable date ranges

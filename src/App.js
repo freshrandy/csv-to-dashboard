@@ -217,7 +217,6 @@ function App() {
   const [parsedData, setParsedData] = useState(null);
   const [metrics, setMetrics] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [monthlyPrice, setMonthlyPrice] = useState(14.99);
   const [dataWarning, setDataWarning] = useState("");
   const [showEnhancedUI, setShowEnhancedUI] = useState(true);
 
@@ -283,7 +282,8 @@ function App() {
 
       // Convert parsed data back to CSV format for the generateMetrics function
       const csv = Papa.unparse(parsedData);
-      const metricsResult = generateMetrics(csv, monthlyPrice);
+      // Pass default value for monthly price (or remove entirely if metrics.js is updated too)
+      const metricsResult = generateMetrics(csv);
       metricsResult.rawData = parsedData;
 
       // Add quality cohort analysis
@@ -355,12 +355,12 @@ function App() {
           <FeaturePill>
             <span
               role="img"
-              aria-label="money"
+              aria-label="insights"
               style={{ marginRight: "0.5rem" }}
             >
-              💰
+              🔍
             </span>
-            Revenue Impact
+            Data Insights
           </FeaturePill>
         </div>
       </HeroSection>
@@ -391,8 +391,7 @@ function App() {
               <div>
                 <p className="font-medium">Process your data</p>
                 <p className="text-sm text-gray-600">
-                  App will automaticlaly analyze your data and generate metrics
-                  automatically.
+                  App will automatically analyze your data and generate metrics.
                 </p>
               </div>
             </StepItem>
@@ -469,27 +468,6 @@ function App() {
                 </WarningBanner>
               )}
 
-              <div className="mt-4">
-                <label
-                  htmlFor="monthlyPrice"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Per Installation Monthly Price ($)
-                </label>
-                <input
-                  type="number"
-                  id="monthlyPrice"
-                  value={monthlyPrice}
-                  onChange={(e) =>
-                    setMonthlyPrice(parseFloat(e.target.value) || 0)
-                  }
-                  step="0.01"
-                  min="0"
-                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 block w-full"
-                  style={{ maxWidth: "200px" }}
-                />
-              </div>
-
               {isProcessing ? (
                 <>
                   <div className="mt-4 p-2 border border-gray-300 rounded bg-gray-50">
@@ -563,25 +541,6 @@ function App() {
               <p>{dataWarning}</p>
             </WarningBanner>
           )}
-
-          <div className="mt-4">
-            <label
-              htmlFor="monthlyPrice"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Per Installation Monthly Price ($)
-            </label>
-            <input
-              type="number"
-              id="monthlyPrice"
-              value={monthlyPrice}
-              onChange={(e) => setMonthlyPrice(parseFloat(e.target.value) || 0)}
-              step="0.01"
-              min="0"
-              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 block w-full"
-              style={{ maxWidth: "200px" }}
-            />
-          </div>
 
           {isProcessing ? (
             <>
