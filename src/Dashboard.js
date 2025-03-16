@@ -7,6 +7,7 @@ import ConversionRateChart from "./ConversionRateChart";
 import RegionalPerformanceComparison from "./RegionalPerformanceComparison";
 import AssessmentQualityIndicators from "./AssessmentQualityIndicators";
 import ActivityMetrics from "./ActivityMetrics";
+import FilterIndicator from "./FilterIndicator"; // Import the new component
 
 const Dashboard = ({ metrics }) => {
   // Exit early if no metrics
@@ -43,237 +44,341 @@ const Dashboard = ({ metrics }) => {
     cloudGrey: "#EEF2F6", // Background light
   };
 
-  // Client info based on data analysis
-  const clientName = "Certify Analysis"; // Could be customized with state input
-  const dateRange = summary.dateRange;
-  const preparedBy = "Randy Panté";
+  // Calculate date range from the filtered data
+  const calculateActualDateRange = () => {
+    if (!employeeTableData || employeeTableData.length === 0) {
+      return summary.dateRange || "No date data";
+    }
 
-  // Activity metrics - Pulled from metrics data
-  const activityMetrics = {
-    uniqueVisits: summary.uniqueHomes,
-    totalScans: summary.totalEntries,
-    accessPoints: {
-      installed: metricsData.installation.totalNodesInstalled,
-      recommended: metricsData.installation.totalNodesRecommended,
-      percentage: parseFloat(metricsData.installation.installationRate),
-    },
-    conversionRate: {
-      value: parseFloat(metricsData.conversion.homeConversionRate),
-      homes: Math.round(
-        (summary.uniqueHomes *
-          parseFloat(metricsData.conversion.homeConversionRate)) /
-          100
-      ),
-      total: summary.uniqueHomes,
-    },
-    avgRooms: parseFloat(metricsData.performance.averageRoomsTested),
-    multiFloorRate: 35.0, // Placeholder - not directly available in our metrics
-    speedTestSuccessRate: parseFloat(
-      metricsData.performance.speedTestSuccessRate
-    ),
-    // Revenue impact section removed
-  };
+    let minDate = new Date("2099-12-31");
+    let maxDate = new Date("1970-01-01");
 
-  // Format week keys into readable date ranges
-  const formatWeekLabel = (weekKey) => {
-    // Parse the year and week number from the key (e.g., "2025-W01")
-    const [year, weekCode] = weekKey.split("-");
-    const weekNum = parseInt(weekCode.substring(1));
+    employeeTableData.forEach((row) => {
+      const dateStr = row["Date "] || row.Date;
+      if (dateStr) {
+        try {
+          const entryDate = new Date(dateStr);
+          if (!isNaN(entryDate)) {
+            if (entryDate < minDate) minDate = entryDate;
+            if (entryDate > maxDate) maxDate = entryDate;
+          }
+        } catch (e) {
+          // Skip invalid dates
+        }
+      }
+    });
 
-    // Create a date for the first day of the year
-    const firstDayOfYear = new Date(parseInt(year), 0, 1);
-
-    // Calculate the first day of the week
-    // Week 1 is the week with January 4th in it per ISO
-    const firstDayOfWeek = new Date(firstDayOfYear);
-    firstDayOfWeek.setDate(
-      firstDayOfYear.getDate() +
-        (4 - firstDayOfYear.getDay()) +
-        (weekNum - 1) * 7
-    );
-
-    // Calculate the last day of the week (6 days later)
-    const lastDayOfWeek = new Date(firstDayOfWeek);
-    lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+    // Make sure we have valid dates
+    if (minDate > maxDate) {
+      return summary.dateRange || "No date data";
+    }
 
     // Format the dates
     const formatDate = (date) => {
       return date.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
+        year: "numeric",
       });
     };
 
-    return `${formatDate(firstDayOfWeek)} - ${formatDate(lastDayOfWeek)}`;
+    return `${formatDate(minDate)} to ${formatDate(maxDate)}`;
   };
 
-  // Weekly Data
-  const weeklyData = (() => {
-    const weeklyDistribution = metricsData.temporal.weeklyDistribution;
+  // Calculate the actual date range from filtered data
+  const actualDateRange = calculateActualDateRange();
 
-    // If we don't have weekly data, return an empty array
-    if (!weeklyDistribution || Object.keys(weeklyDistribution).length === 0) {
-      return [];
+  // Client info based on data analysis
+  const clientName = "Certify Analysis"; // Could be customized with state input
+  const dateRange = actualDateRange; // Use actual date range from filtered data
+  const preparedBy = "Randy Panté";
+
+  // Count active employees (unique employees in filtered data)
+  const countActiveEmployees = () => {
+    if (!employeeTableData || employeeTableData.length === 0) {
+      return 0;
     }
 
-    // Process the real weekly data
-    const processedData = [];
-
-    // Dynamically determine the maximum date from the summary or raw data
-    const findMaxDate = () => {
-      // Try to extract from the date range in the summary
-      if (summary.dateRange) {
-        const dateRangeParts = summary.dateRange.split(" to ");
-        if (dateRangeParts.length > 1) {
-          try {
-            return new Date(dateRangeParts[1]);
-          } catch (e) {
-            console.warn("Could not parse date range end date:", e);
-          }
-        }
+    const uniqueEmployees = new Set();
+    employeeTableData.forEach((row) => {
+      if (
+        row["Employee Email"] &&
+        !row["Employee Email"].includes("@routethis.com")
+      ) {
+        uniqueEmployees.add(row["Employee Email"]);
       }
-
-      // If that doesn't work, find the maximum date in the raw data
-      if (metrics.rawData && metrics.rawData.length > 0) {
-        let maxDate = new Date(0); // Start with oldest possible date
-
-        metrics.rawData.forEach((entry) => {
-          const dateStr = entry["Date "] || entry.Date;
-          if (dateStr) {
-            try {
-              const entryDate = new Date(dateStr);
-              if (!isNaN(entryDate) && entryDate > maxDate) {
-                maxDate = entryDate;
-              }
-            } catch (e) {
-              // Skip invalid dates
-            }
-          }
-        });
-
-        if (maxDate.getTime() > 0) {
-          return maxDate;
-        }
-      }
-
-      // Fallback to current date minus one day if no valid dates found
-      const today = new Date();
-      today.setDate(today.getDate() - 1);
-      return today;
-    };
-
-    const maxDate = findMaxDate();
-    console.log("Maximum date from data:", maxDate.toISOString().split("T")[0]);
-
-    // Sort the week keys to ensure chronological order
-    const sortedWeeks = Object.keys(weeklyDistribution).sort();
-
-    // Use the raw data that's already available in metrics
-    const rawData = metrics.rawData || [];
-
-    // Process each week
-    sortedWeeks.forEach((weekKey) => {
-      // Get the week label
-      const weekLabel = formatWeekLabel(weekKey);
-
-      // Parse the week dates to determine if this week should be included
-      try {
-        const dateParts = weekLabel.split(" - ");
-        if (dateParts.length === 2) {
-          // Extract end date of the week
-          const endDateStr = dateParts[1];
-          // Add the current year since it's missing in the label
-          const currentYear = new Date().getFullYear();
-          const endDate = new Date(`${endDateStr} ${currentYear}`);
-
-          // Skip weeks where the end date is after our max date
-          if (endDate > maxDate) {
-            console.log(
-              `Skipping week ${weekLabel} as it extends beyond max date`
-            );
-            return;
-          }
-        }
-      } catch (e) {
-        console.warn("Error parsing week dates:", e);
-        // If there's an error parsing, we'll include the week to be safe
-      }
-
-      // Get the number of scans for this week
-      const scans = weeklyDistribution[weekKey];
-
-      // For installations and unique homes, let's use real data if available
-      let installations = 0;
-      let uniqueHomes = 0;
-
-      // Use the already-calculated conversion rate
-      const avgConversionRate =
-        parseFloat(metricsData.conversion.homeConversionRate) / 100;
-
-      // If raw data is available, use it for more accurate calculations
-      if (rawData && rawData.length > 0) {
-        // Get entries for this week from the raw data
-        const weekData = rawData.filter((entry) => {
-          if (!entry["Date "] && !entry.Date) return false;
-          const entryDate = new Date(entry["Date "] || entry.Date);
-          if (isNaN(entryDate)) return false; // Skip invalid dates
-
-          // Skip data after max date
-          if (entryDate > maxDate) return false;
-
-          const [year, weekCode] = weekKey.split("-");
-          const weekNum = parseInt(weekCode.substring(1));
-          return (
-            getWeekNumber(entryDate) === weekNum &&
-            entryDate.getFullYear().toString() === year
-          );
-        });
-
-        // Count actual installations (mesh nodes > 0)
-        installations = weekData.filter(
-          (entry) =>
-            entry["Mesh Nodes Installed"] && entry["Mesh Nodes Installed"] > 0
-        ).length;
-
-        // Count unique addresses for this week if we have address data
-        if (summary.hasAddresses) {
-          const uniqueAddresses = new Set();
-          weekData.forEach((entry) => {
-            if (entry.Address) {
-              const addressKey = `${entry.Address}, ${entry.City || ""}, ${
-                entry["State/Province"] || ""
-              }`;
-              uniqueAddresses.add(addressKey);
-            }
-          });
-          uniqueHomes = uniqueAddresses.size;
-        } else {
-          // If no address data, estimate based on scans
-          uniqueHomes = Math.round(scans * 0.8);
-        }
-      } else {
-        // If raw data is not available, use calculations based on the avg conversion rate
-        installations = Math.round(scans * avgConversionRate);
-        uniqueHomes = Math.round(scans * 0.8);
-      }
-
-      // Calculate conversion rate
-      const conversion = scans > 0 ? (installations / scans) * 100 : 0;
-
-      // Create the week data point
-      processedData.push({
-        week: weekLabel,
-        completed: scans,
-        installations: installations,
-        conversion: parseFloat(conversion.toFixed(1)),
-        uniqueHomes: uniqueHomes,
-      });
     });
 
-    return processedData;
-  })();
+    return uniqueEmployees.size;
+  };
 
-  // Helper function to get ISO week number from a date - add if it doesn't exist already
+  const activeEmployeesCount = countActiveEmployees();
+
+  // Recalculate installation metrics from filtered data
+  const calculateInstallationMetrics = () => {
+    let totalNodesRecommended = 0;
+    let totalNodesInstalled = 0;
+    let assessmentsWithInstalls = 0;
+
+    // Count unique addresses/assessments
+    const uniqueAssessments = new Set();
+
+    employeeTableData.forEach((row) => {
+      // Count nodes
+      if (row["Mesh Nodes Recommended"]) {
+        totalNodesRecommended += row["Mesh Nodes Recommended"];
+      }
+
+      if (row["Mesh Nodes Installed"]) {
+        totalNodesInstalled += row["Mesh Nodes Installed"];
+      }
+
+      // Count entries with installations
+      if (row["Mesh Nodes Installed"] && row["Mesh Nodes Installed"] > 0) {
+        assessmentsWithInstalls++;
+      }
+
+      // Track unique assessments
+      if (hasAddresses && row.Address) {
+        const addressKey = `${row.Address}, ${row.City || ""}, ${
+          row["State/Province"] || ""
+        }`;
+        uniqueAssessments.add(addressKey);
+      } else {
+        // Use other identifying info if addresses not available
+        const dateStr = row["Date"] || row["Date "] || "";
+        const date = new Date(dateStr);
+        const formattedDate = !isNaN(date)
+          ? date.toISOString().split("T")[0]
+          : dateStr;
+        const assessmentKey = `${formattedDate}|${row.City || ""}|${
+          row["State/Province"] || ""
+        }|${row["Quality of Install Score"] || ""}`;
+        uniqueAssessments.add(assessmentKey);
+      }
+    });
+
+    // Calculate conversion rate
+    const totalAssessments = uniqueAssessments.size;
+    const homeConversionRate =
+      totalAssessments > 0
+        ? (assessmentsWithInstalls / totalAssessments) * 100
+        : 0;
+
+    // Calculate installation rate
+    const installationRate =
+      totalNodesRecommended > 0
+        ? (totalNodesInstalled / totalNodesRecommended) * 100
+        : 0;
+
+    return {
+      totalNodesRecommended,
+      totalNodesInstalled,
+      installationRate,
+      assessmentsWithInstalls,
+      totalAssessments,
+      homeConversionRate,
+    };
+  };
+
+  const installationMetrics = calculateInstallationMetrics();
+
+  // Calculate performance metrics from filtered data
+  const calculatePerformanceMetrics = () => {
+    let totalRoomsTested = 0;
+    let totalExpectedSpeed = 0;
+    let totalActualSpeed = 0;
+    let speedTestCount = 0;
+    let successfulSpeedTests = 0;
+    let totalQualityScore = 0;
+    let qualityScoreCount = 0;
+
+    employeeTableData.forEach((row) => {
+      if (row["Rooms Tested"]) {
+        totalRoomsTested += row["Rooms Tested"];
+      }
+
+      if (row["Expected Speed"] && row["Actual Speed"]) {
+        totalExpectedSpeed += row["Expected Speed"];
+        totalActualSpeed += row["Actual Speed"];
+        speedTestCount++;
+
+        // Count tests with at least 80% of expected
+        if (row["Actual Speed"] >= 0.8 * row["Expected Speed"]) {
+          successfulSpeedTests++;
+        }
+      }
+
+      if (
+        row["Quality of Install Score"] !== null &&
+        row["Quality of Install Score"] !== undefined
+      ) {
+        totalQualityScore += row["Quality of Install Score"];
+        qualityScoreCount++;
+      }
+    });
+
+    // Calculate averages
+    const avgRoomsTested =
+      employeeTableData.length > 0
+        ? totalRoomsTested / employeeTableData.length
+        : 0;
+    const speedTestSuccessRate =
+      speedTestCount > 0 ? (successfulSpeedTests / speedTestCount) * 100 : 0;
+    const avgQualityScore =
+      qualityScoreCount > 0 ? totalQualityScore / qualityScoreCount : 0;
+
+    return {
+      avgRoomsTested,
+      speedTestSuccessRate,
+      avgQualityScore,
+    };
+  };
+
+  const performanceMetrics = calculatePerformanceMetrics();
+
+  // Calculate regional statistics from filtered data
+  // Calculate regional statistics from filtered data - with handling for missing regions
+  const calculateRegionalData = () => {
+    // Group by region
+    const regionGroups = {};
+
+    // Track total counts for verification
+    let totalCertifications = 0;
+    let totalInstallations = 0;
+
+    employeeTableData.forEach((row) => {
+      // Normalize region name, using "Unknown Region" if not specified
+      const region = row["State/Province"]
+        ? row["State/Province"]
+        : "Unknown Region";
+
+      // Initialize region if doesn't exist
+      if (!regionGroups[region]) {
+        regionGroups[region] = {
+          certifications: 0,
+          installations: 0,
+        };
+      }
+
+      // Count certification
+      regionGroups[region].certifications++;
+      totalCertifications++;
+
+      // Count installation
+      if (row["Mesh Nodes Installed"]) {
+        const nodesInstalled = row["Mesh Nodes Installed"] || 0;
+        regionGroups[region].installations += nodesInstalled;
+        totalInstallations += nodesInstalled;
+      }
+    });
+
+    // Calculate conversion rates and create final data
+    const regionData = Object.entries(regionGroups).map(([name, data]) => {
+      return {
+        name,
+        certifications: data.certifications,
+        installations: data.installations,
+        conversion:
+          data.certifications > 0
+            ? (data.installations / data.certifications) * 100
+            : 0,
+      };
+    });
+
+    // Sort by certifications (highest first)
+    const sortedData = regionData.sort(
+      (a, b) => b.certifications - a.certifications
+    );
+
+    // Log verification totals
+    console.log(`Regional data verification: 
+    - Total entries in filtered data: ${employeeTableData.length}
+    - Total certifications counted: ${totalCertifications}
+    - Total installations counted: ${totalInstallations}
+    - Should match installations metric: ${installationMetrics.assessmentsWithInstalls}`);
+
+    return sortedData;
+  };
+
+  const regionalData = calculateRegionalData();
+
+  // Activity metrics - Recalculated from filtered data
+  const activityMetrics = {
+    uniqueVisits: installationMetrics.totalAssessments,
+    totalScans: employeeTableData.length,
+    accessPoints: {
+      installed: installationMetrics.totalNodesInstalled,
+      recommended: installationMetrics.totalNodesRecommended,
+      percentage: parseFloat(installationMetrics.installationRate.toFixed(2)),
+    },
+    conversionRate: {
+      value: parseFloat(installationMetrics.homeConversionRate.toFixed(2)),
+      homes: installationMetrics.assessmentsWithInstalls,
+      total: installationMetrics.totalAssessments,
+    },
+    avgRooms: parseFloat(performanceMetrics.avgRoomsTested.toFixed(2)),
+    multiFloorRate: 35.0, // Placeholder - not directly available in our metrics
+    speedTestSuccessRate: parseFloat(
+      performanceMetrics.speedTestSuccessRate.toFixed(2)
+    ),
+    activeEmployees: activeEmployeesCount, // Use actual count from filtered data
+  };
+
+  /**
+   * Improved utility function to format week range for display
+   * Updated to handle all possible week keys
+   */
+  function formatWeekLabel(weekKey) {
+    try {
+      // Parse year and week from the key (e.g., "2025-W01")
+      const [year, weekCode] = weekKey.split("-");
+      if (!year || !weekCode) {
+        return weekKey; // Return original if can't parse
+      }
+
+      const weekNum = parseInt(weekCode.substring(1));
+      if (isNaN(weekNum)) {
+        return weekKey; // Return original if week is not a number
+      }
+
+      // Create a date object for Jan 1 of the year
+      const janFirst = new Date(parseInt(year), 0, 1);
+
+      // Calculate first day of the week (Monday)
+      // Get to the first Monday of the year
+      const firstMonday = new Date(
+        parseInt(year),
+        0,
+        1 + ((8 - janFirst.getDay()) % 7)
+      );
+
+      // Calculate first day of the requested week
+      const firstDayOfWeek = new Date(firstMonday);
+      firstDayOfWeek.setDate(firstMonday.getDate() + (weekNum - 1) * 7);
+
+      // Calculate last day of the week (Sunday)
+      const lastDayOfWeek = new Date(firstDayOfWeek);
+      lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+
+      // Format the dates
+      const formatDate = (date) => {
+        return date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+      };
+
+      return `${formatDate(firstDayOfWeek)} - ${formatDate(lastDayOfWeek)}`;
+    } catch (error) {
+      console.warn(`Error formatting week label for ${weekKey}:`, error);
+      return weekKey; // Return original on error
+    }
+  }
+
+  /**
+   * Helper function to get ISO week number from a date
+   */
   function getWeekNumber(d) {
     const date = new Date(d);
     date.setHours(0, 0, 0, 0);
@@ -293,59 +398,215 @@ const Dashboard = ({ metrics }) => {
     );
   }
 
-  // Regional Performance Data - from metrics
-  const regionalData = [];
+  /**
+   * Gets the ISO week and year for a date
+   */
+  function getWeekYear(date) {
+    // Create a new date object for the Thursday in this week
+    // (weeks are defined by ISO as having Thursday as the 4th day)
+    const thursdayDate = new Date(date);
+    thursdayDate.setDate(date.getDate() + (4 - (date.getDay() || 7)));
 
-  // Check if we have the enhanced region data from our metrics.js update
-  if (metricsData.conversion.regionalData) {
-    console.log("Using actual region data from metrics");
+    // Get the year for that Thursday
+    const year = thursdayDate.getFullYear();
 
-    Object.entries(metricsData.conversion.regionalData).forEach(
-      ([region, data]) => {
-        regionalData.push({
-          name: region,
-          certifications: data.certifications,
-          installations: data.installations,
-          conversion: parseFloat(data.conversionRate),
-        });
-      }
-    );
-  } else {
-    console.log("Falling back to estimates based on conversion rates");
+    // Get the week number
+    const firstThursday = new Date(year, 0, 4); // First Thursday of the year
+    const weekNum =
+      1 +
+      Math.round(
+        ((thursdayDate - firstThursday) / 86400000 -
+          ((thursdayDate.getDay() + 6) % 7) / 7 +
+          ((firstThursday.getDay() + 6) % 7) / 7) /
+          7
+      );
 
-    // Fall back to using the conversion rates
-    Object.entries(metricsData.conversion.regionalConversion).forEach(
-      ([region, rate]) => {
-        // Default values if not available
-        const conversionRate = parseFloat(rate);
-        const certifications = Math.round(50 + Math.random() * 50); // 50-100 range
-        const installations = Math.round(
-          (certifications * conversionRate) / 100
-        );
-
-        regionalData.push({
-          name: region,
-          certifications,
-          installations,
-          conversion: conversionRate,
-        });
-      }
-    );
+    return { year, week: weekNum };
   }
 
-  // Sort by certifications (highest first)
-  regionalData.sort((a, b) => b.certifications - a.certifications);
+  // Weekly Data with fixed implementation to include all dates
+  const weeklyData = (() => {
+    // Initialize distribution structure
+    const weeklyDistribution = {};
+
+    // Build distribution from filtered data
+    employeeTableData.forEach((row) => {
+      const dateStr = row["Date "] || row.Date;
+      if (!dateStr) return;
+
+      try {
+        const entryDate = new Date(dateStr);
+        if (isNaN(entryDate)) return;
+
+        // Get week key
+        const weekInfo = getWeekYear(entryDate);
+        const weekKey = `${weekInfo.year}-W${weekInfo.week
+          .toString()
+          .padStart(2, "0")}`;
+
+        // Add to distribution
+        weeklyDistribution[weekKey] = (weeklyDistribution[weekKey] || 0) + 1;
+      } catch (e) {
+        // Skip invalid dates
+      }
+    });
+
+    // If we don't have weekly data, return an empty array
+    if (Object.keys(weeklyDistribution).length === 0) {
+      return [];
+    }
+
+    // Process the real weekly data
+    const processedData = [];
+
+    // Use the raw data that's already available in metrics
+    const rawData = employeeTableData || [];
+
+    // Find actual min and max dates in the filtered raw data
+    let minDate = new Date("2099-12-31");
+    let maxDate = new Date("1970-01-01");
+
+    rawData.forEach((entry) => {
+      const dateStr = entry["Date "] || entry.Date;
+      if (dateStr) {
+        try {
+          const entryDate = new Date(dateStr);
+          if (!isNaN(entryDate)) {
+            if (entryDate < minDate) minDate = entryDate;
+            if (entryDate > maxDate) maxDate = entryDate;
+          }
+        } catch (e) {
+          // Skip invalid dates
+        }
+      }
+    });
+
+    // Make sure we have valid dates
+    if (minDate > maxDate) {
+      console.warn("No valid dates found in data");
+      return [];
+    }
+
+    // Get the ISO week and year for min and max dates
+    const startWeekInfo = getWeekYear(minDate);
+    const endWeekInfo = getWeekYear(maxDate);
+
+    // Generate all week keys between start and end
+    const allWeekKeys = [];
+    let currentYear = startWeekInfo.year;
+    let currentWeek = startWeekInfo.week;
+
+    while (
+      currentYear < endWeekInfo.year ||
+      (currentYear === endWeekInfo.year && currentWeek <= endWeekInfo.week)
+    ) {
+      allWeekKeys.push(
+        `${currentYear}-W${currentWeek.toString().padStart(2, "0")}`
+      );
+
+      // Move to next week
+      currentWeek++;
+      if (currentWeek > 52) {
+        currentWeek = 1;
+        currentYear++;
+      }
+    }
+
+    // Sort the week keys to ensure chronological order
+    const sortedWeeks = [
+      ...new Set([...Object.keys(weeklyDistribution), ...allWeekKeys]),
+    ].sort();
+
+    // Process each week
+    sortedWeeks.forEach((weekKey) => {
+      // Get the week label
+      const weekLabel = formatWeekLabel(weekKey);
+
+      // Get the number of scans for this week from the distribution, or default to 0
+      const scans = weeklyDistribution[weekKey] || 0;
+
+      // For installations and unique homes, use real data
+      let installations = 0;
+      let uniqueHomes = 0;
+
+      // Process raw data for this week directly
+      if (rawData && rawData.length > 0) {
+        // Get entries for this week from the raw data
+        const weekData = rawData.filter((entry) => {
+          if (!entry["Date "] && !entry.Date) return false;
+
+          try {
+            const entryDate = new Date(entry["Date "] || entry.Date);
+            if (isNaN(entryDate)) return false; // Skip invalid dates
+
+            const entryWeekInfo = getWeekYear(entryDate);
+            const entryWeekKey = `${entryWeekInfo.year}-W${entryWeekInfo.week
+              .toString()
+              .padStart(2, "0")}`;
+
+            return entryWeekKey === weekKey;
+          } catch (e) {
+            return false; // Skip entries with date parsing issues
+          }
+        });
+
+        // Count actual installations (mesh nodes > 0)
+        installations = weekData.reduce((total, entry) => {
+          return total + (entry["Mesh Nodes Installed"] || 0);
+        }, 0);
+
+        // Count unique addresses for this week if we have address data
+        if (hasAddresses) {
+          const uniqueAddresses = new Set();
+          weekData.forEach((entry) => {
+            if (entry.Address) {
+              const addressKey = `${entry.Address}, ${entry.City || ""}, ${
+                entry["State/Province"] || ""
+              }`;
+              uniqueAddresses.add(addressKey);
+            }
+          });
+          uniqueHomes = uniqueAddresses.size;
+        } else {
+          // If no address data, estimate based on scans
+          uniqueHomes = Math.round(scans * 0.8);
+        }
+      } else {
+        // Fallback calculation if raw data isn't available
+        const avgConversionRate = installationMetrics.homeConversionRate / 100;
+        installations = Math.round(scans * avgConversionRate);
+        uniqueHomes = Math.round(scans * 0.8);
+      }
+
+      // Calculate conversion rate
+      const conversion = scans > 0 ? (installations / scans) * 100 : 0;
+
+      // Only include weeks that actually have data
+      if (scans > 0 || installations > 0 || uniqueHomes > 0) {
+        // Create the week data point
+        processedData.push({
+          week: weekLabel,
+          completed: scans,
+          installations: installations,
+          conversion: parseFloat(conversion.toFixed(1)),
+          uniqueHomes: uniqueHomes,
+        });
+      }
+    });
+
+    return processedData;
+  })();
 
   // Speed Test Performance
   const speedTestData = [
     {
       name: "Above 80% of Plan",
-      value: parseFloat(metricsData.performance.speedTestSuccessRate),
+      value: performanceMetrics.speedTestSuccessRate,
       color: colors.jade,
     },
     {
       name: "Below 80% of Plan",
-      value: 100 - parseFloat(metricsData.performance.speedTestSuccessRate),
+      value: 100 - performanceMetrics.speedTestSuccessRate,
       color: "#EF4444",
     },
   ];
@@ -381,6 +642,9 @@ const Dashboard = ({ metrics }) => {
         </div>
       </div>
 
+      {/* Add Filter Indicator if we have filtered data */}
+      <FilterIndicator metrics={metrics} colors={colors} />
+
       <div className="flex flex-col gap-6">
         {/* Activity Metrics Section - Using the ActivityMetrics component */}
         <ActivityMetrics
@@ -411,13 +675,20 @@ const Dashboard = ({ metrics }) => {
 
       {/* Employee Performance Table */}
       <div className="mt-8">
-        <EmployeePerformanceTable data={employeeTableData} />
+        <EmployeePerformanceTable
+          data={employeeTableData}
+          dateRange={dateRange} // Pass correct date range to component
+        />
       </div>
 
       {/* Quality metrics */}
       {metrics.qualityCohort && (
         <div className="mt-8">
-          <TechnicianQualityChart cohortData={metrics.qualityCohort} />
+          <TechnicianQualityChart
+            cohortData={metrics.qualityCohort}
+            filteredData={employeeTableData} // Pass filtered data for possible recalculation
+            dateRange={dateRange} // Pass correct date range
+          />
         </div>
       )}
 

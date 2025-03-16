@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import _ from "lodash";
 import Colors from "./Colors";
 
-const EmployeePerformanceTable = ({ data: csvData }) => {
+const EmployeePerformanceTable = ({ data: csvData, dateRange }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [displayData, setDisplayData] = useState([]); // For pagination
@@ -50,10 +50,12 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
             const totalScans = installations.length;
 
             // Calculate conversion rate (installations with Mesh Nodes Installed > 0)
-            const completedInstallations = installations.filter(
-              (inst) =>
-                inst["Mesh Nodes Installed"] && inst["Mesh Nodes Installed"] > 0
-            ).length;
+            const completedInstallations = installations.reduce(
+              (total, inst) => {
+                return total + (inst["Mesh Nodes Installed"] || 0);
+              },
+              0
+            );
 
             const conversionRate =
               totalScans > 0 ? (completedInstallations / totalScans) * 100 : 0;
@@ -168,7 +170,6 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
     setCurrentPage(page);
     updateDisplayData(filteredData, page);
   };
-
   // Handle items per page change
   const handleItemsPerPageChange = (e) => {
     const newItemsPerPage = parseInt(e.target.value, 10);
@@ -389,7 +390,7 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
           </div>
           <div>
             <span className="text-sm text-gray-500">Data Range</span>
-            <div className="font-medium">Jan 1, 2025 - Mar 12, 2025</div>
+            <div className="font-medium">{dateRange || "All data"}</div>
           </div>
         </div>
 
@@ -421,7 +422,7 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
                 className={`px-3 py-1 text-xs rounded-full transition-colors ${
                   visibleEmployees[employee.email]
                     ? "bg-blue-100 text-blue-800 border border-blue-200"
-                    : "bg-gray-100 text-gray-500 border border-gray-200"
+                    : "bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-100"
                 }`}
                 onClick={() => toggleEmployee(employee.email)}
               >
@@ -464,7 +465,7 @@ const EmployeePerformanceTable = ({ data: csvData }) => {
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                 onClick={() => requestSort("completedInstallations")}
               >
-                Installations
+                Access Points Installed
                 <span className={getSortButtonClass("completedInstallations")}>
                   ▼
                 </span>

@@ -9,6 +9,7 @@ import Dashboard from "./Dashboard";
 import { generateQualityMetricsCohort } from "./cohortAnalysis";
 import EmployeePerformanceTable from "./EmployeePerformanceTable";
 import EmployeeQualityCohortTable from "./EmployeeQualityCohortTable";
+import EmployeeSelection from "./EmployeeSelection"; // Import the new component
 
 // Styled components
 const AppContainer = styled.div`
@@ -215,10 +216,12 @@ const DashboardPreview = styled.div`
 function App() {
   const [file, setFile] = useState(null);
   const [parsedData, setParsedData] = useState(null);
+  const [filteredData, setFilteredData] = useState(null); // New state for filtered data
   const [metrics, setMetrics] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [dataWarning, setDataWarning] = useState("");
   const [showEnhancedUI, setShowEnhancedUI] = useState(true);
+  const [showEmployeeSelection, setShowEmployeeSelection] = useState(false); // New state for controlling view
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -236,6 +239,10 @@ function App() {
   const parseCSV = (file) => {
     console.log("Starting CSV parsing, setting isProcessing to true");
     setIsProcessing(true);
+    // Reset any previous states
+    setMetrics(null);
+    setFilteredData(null);
+    setShowEmployeeSelection(false);
 
     Papa.parse(file, {
       header: true,
@@ -255,6 +262,8 @@ function App() {
         setTimeout(() => {
           console.log("CSV parsing complete, setting isProcessing to false");
           setIsProcessing(false);
+          // Show employee selection after parsing
+          setShowEmployeeSelection(true);
         }, 300);
 
         // Show a warning about missing data
@@ -274,22 +283,42 @@ function App() {
     });
   };
 
-  const processMetrics = () => {
-    if (!parsedData) return;
+  // New function to handle employee selection
+  const handleEmployeeSelect = (selectedEmployees) => {
+    if (!parsedData || !selectedEmployees.length) return;
+
+    setIsProcessing(true);
+
+    // Filter the data to only include rows from selected employees
+    const filtered = parsedData.filter(
+      (row) =>
+        selectedEmployees.includes(row["Employee Email"]) ||
+        !row["Employee Email"] // Include rows without employee email
+    );
+
+    setFilteredData(filtered);
+
+    // Now process metrics with the filtered data
+    processMetrics(filtered);
+  };
+
+  const processMetrics = (dataToProcess = filteredData) => {
+    if (!dataToProcess) return;
 
     try {
       setIsProcessing(true);
 
       // Convert parsed data back to CSV format for the generateMetrics function
-      const csv = Papa.unparse(parsedData);
+      const csv = Papa.unparse(dataToProcess);
       // Pass default value for monthly price (or remove entirely if metrics.js is updated too)
       const metricsResult = generateMetrics(csv);
-      metricsResult.rawData = parsedData;
+      metricsResult.rawData = dataToProcess;
 
       // Add quality cohort analysis
       metricsResult.qualityCohort = generateQualityMetricsCohort(csv);
 
       setMetrics(metricsResult);
+      setShowEmployeeSelection(false); // Hide employee selection once metrics are generated
 
       // Add a slight delay before setting isProcessing to false
       // This ensures the loader has time to render
@@ -321,7 +350,9 @@ function App() {
     setMetrics(null);
     setFile(null);
     setParsedData(null);
+    setFilteredData(null);
     setDataWarning("");
+    setShowEmployeeSelection(false);
   };
 
   // Render the enhanced UI splash screen
@@ -389,9 +420,9 @@ function App() {
             <StepItem>
               <StepNumber>2</StepNumber>
               <div>
-                <p className="font-medium">Process your data</p>
+                <p className="font-medium">Select employees to analyze</p>
                 <p className="text-sm text-gray-600">
-                  App will automatically analyze your data and generate metrics.
+                  Choose which employees to include in your dashboard.
                 </p>
               </div>
             </StepItem>
@@ -479,13 +510,7 @@ function App() {
                 </>
               ) : (
                 <>
-                  <Button
-                    onClick={processMetrics}
-                    disabled={!parsedData}
-                    className="mt-4"
-                  >
-                    Generate Dashboard
-                  </Button>
+                  {/* We no longer need this button as the employee selection will trigger metrics generation */}
                 </>
               )}
             </FileInfo>
@@ -555,13 +580,7 @@ function App() {
           ) : (
             <>
               {console.log("Rendering generate metrics button")}
-              <Button
-                onClick={processMetrics}
-                disabled={!parsedData}
-                className="mt-4"
-              >
-                Generate Metrics
-              </Button>
+              {/* We no longer need this button as the employee selection will trigger metrics generation */}
             </>
           )}
         </FileInfo>
@@ -569,15 +588,11 @@ function App() {
     </>
   );
 
-  return (
-    <AppContainer>
-      {!metrics ? (
-        showEnhancedUI ? (
-          renderEnhancedSplashScreen()
-        ) : (
-          renderOriginalUI()
-        )
-      ) : (
+  // Determine what to show based on the current state
+  const renderContent = () => {
+    if (metrics) {
+      // Show the dashboard if metrics are generated
+      return (
         <>
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-2xl font-bold">Dashboard Generated</h3>
@@ -586,14 +601,27 @@ function App() {
               <Button onClick={resetApp}>New Analysis</Button>
             </div>
           </div>
-
           <div id="dashboard-section" className="mt-8">
             <Dashboard metrics={metrics} />
           </div>
         </>
-      )}
-    </AppContainer>
-  );
+      );
+    } else if (showEmployeeSelection && parsedData) {
+      // Show employee selection if data is parsed but metrics aren't generated yet
+      return (
+        <EmployeeSelection
+          parsedData={parsedData}
+          onEmployeeSelect={handleEmployeeSelect}
+          isProcessing={isProcessing}
+        />
+      );
+    } else {
+      // Show the file upload UI
+      return showEnhancedUI ? renderEnhancedSplashScreen() : renderOriginalUI();
+    }
+  };
+
+  return <AppContainer>{renderContent()}</AppContainer>;
 }
 
 export default App;
