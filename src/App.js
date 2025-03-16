@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import Papa from "papaparse";
 import styled from "styled-components";
@@ -9,7 +9,7 @@ import Dashboard from "./Dashboard";
 import { generateQualityMetricsCohort } from "./cohortAnalysis";
 import EmployeePerformanceTable from "./EmployeePerformanceTable";
 import EmployeeQualityCohortTable from "./EmployeeQualityCohortTable";
-import EmployeeSelection from "./EmployeeSelection"; // Import the new component
+import FilterGroupSelection from "./FilterGroupSelection"; // New component
 
 // Styled components
 const AppContainer = styled.div`
@@ -216,12 +216,67 @@ const DashboardPreview = styled.div`
 function App() {
   const [file, setFile] = useState(null);
   const [parsedData, setParsedData] = useState(null);
-  const [filteredData, setFilteredData] = useState(null); // New state for filtered data
+  const [filteredData, setFilteredData] = useState(null); // For filtered data
   const [metrics, setMetrics] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [dataWarning, setDataWarning] = useState("");
   const [showEnhancedUI, setShowEnhancedUI] = useState(true);
-  const [showEmployeeSelection, setShowEmployeeSelection] = useState(false); // New state for controlling view
+  const [showFilterGroupSelection, setShowFilterGroupSelection] =
+    useState(false);
+  const [activeFilterGroup, setActiveFilterGroup] = useState(null);
+
+  // Initialize filter groups
+  const [filterGroups, setFilterGroups] = useState({
+    all: {
+      name: "All Employees",
+      description: "No filtering applied",
+      employees: [], // This remains empty as it's a special case
+    },
+    group1: {
+      name: "Group 1",
+      description: "Click Edit to add a description",
+      employees: [], // Initially empty
+    },
+    group2: {
+      name: "Group 2",
+      description: "Click Edit to add a description",
+      employees: [], // Initially empty
+    },
+    group3: {
+      name: "Group 3",
+      description: "Click Edit to add a description",
+      employees: [], // Initially empty
+    },
+    group4: {
+      name: "Group 4",
+      description: "Click Edit to add a description",
+      employees: [], // Initially empty
+    },
+  });
+
+  // State for saved configurations
+  const [savedConfigs, setSavedConfigs] = useState([]);
+
+  // Load filter groups and saved configs from localStorage on component mount
+  useEffect(() => {
+    const savedGroups = localStorage.getItem("dashboard-filter-groups");
+    if (savedGroups) {
+      try {
+        setFilterGroups(JSON.parse(savedGroups));
+      } catch (e) {
+        console.error("Error loading saved filter groups:", e);
+      }
+    }
+
+    const savedConfigsList = localStorage.getItem("dashboard-saved-configs");
+    if (savedConfigsList) {
+      try {
+        setSavedConfigs(JSON.parse(savedConfigsList));
+      } catch (e) {
+        console.error("Error loading saved configurations:", e);
+      }
+    }
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -242,7 +297,7 @@ function App() {
     // Reset any previous states
     setMetrics(null);
     setFilteredData(null);
-    setShowEmployeeSelection(false);
+    setShowFilterGroupSelection(false);
 
     Papa.parse(file, {
       header: true,
@@ -262,8 +317,8 @@ function App() {
         setTimeout(() => {
           console.log("CSV parsing complete, setting isProcessing to false");
           setIsProcessing(false);
-          // Show employee selection after parsing
-          setShowEmployeeSelection(true);
+          // Show filter group selection after parsing
+          setShowFilterGroupSelection(true);
         }, 300);
 
         // Show a warning about missing data
@@ -283,23 +338,135 @@ function App() {
     });
   };
 
-  // New function to handle employee selection
-  const handleEmployeeSelect = (selectedEmployees) => {
-    if (!parsedData || !selectedEmployees.length) return;
-
+  // Handle filter group selection and apply the filter
+  const handleFilterGroupSelect = (groupKey) => {
     setIsProcessing(true);
+    setActiveFilterGroup(groupKey);
+
+    if (groupKey === "all" || !parsedData) {
+      // Process all data without filtering
+      processMetrics(parsedData);
+      return;
+    }
+
+    // Get the selected group
+    const selectedGroup = filterGroups[groupKey];
 
     // Filter the data to only include rows from selected employees
     const filtered = parsedData.filter(
       (row) =>
-        selectedEmployees.includes(row["Employee Email"]) ||
+        selectedGroup.employees.includes(row["Employee Email"]) ||
         !row["Employee Email"] // Include rows without employee email
     );
 
     setFilteredData(filtered);
 
-    // Now process metrics with the filtered data
+    // Process metrics with the filtered data
     processMetrics(filtered);
+  };
+
+  // Handle updating a filter group
+  const handleUpdateFilterGroup = (groupKey, updatedGroup) => {
+    setFilterGroups((prev) => {
+      const updated = {
+        ...prev,
+        [groupKey]: updatedGroup,
+      };
+
+      // Save to localStorage
+      localStorage.setItem("dashboard-filter-groups", JSON.stringify(updated));
+
+      return updated;
+    });
+  };
+
+  // Save current filter groups as a named configuration
+  const saveCurrentConfiguration = (configName) => {
+    const newConfig = {
+      name: configName,
+      date: new Date().toLocaleDateString(),
+      groups: filterGroups,
+    };
+
+    setSavedConfigs((prev) => {
+      const updated = [...prev, newConfig];
+
+      // Save to localStorage
+      localStorage.setItem("dashboard-saved-configs", JSON.stringify(updated));
+
+      return updated;
+    });
+  };
+
+  // Load a saved configuration
+  const loadSavedConfiguration = (configIndex) => {
+    const config = savedConfigs[configIndex];
+    if (config && config.groups) {
+      setFilterGroups(config.groups);
+
+      // Save to localStorage
+      localStorage.setItem(
+        "dashboard-filter-groups",
+        JSON.stringify(config.groups)
+      );
+    }
+  };
+
+  // Delete a saved configuration
+  const deleteSavedConfiguration = (configIndex) => {
+    setSavedConfigs((prev) => {
+      const updated = prev.filter((_, index) => index !== configIndex);
+
+      // Save to localStorage
+      localStorage.setItem("dashboard-saved-configs", JSON.stringify(updated));
+
+      return updated;
+    });
+  };
+
+  // Export configurations as JSON file
+  const exportConfigurations = () => {
+    const data = {
+      filterGroups: filterGroups,
+      savedConfigs: savedConfigs,
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    saveAs(blob, `dashboard-filter-configs.json`);
+  };
+
+  // Import configurations from JSON file
+  const importConfigurations = (file) => {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.filterGroups) {
+          setFilterGroups(data.filterGroups);
+          localStorage.setItem(
+            "dashboard-filter-groups",
+            JSON.stringify(data.filterGroups)
+          );
+        }
+        if (data.savedConfigs) {
+          setSavedConfigs(data.savedConfigs);
+          localStorage.setItem(
+            "dashboard-saved-configs",
+            JSON.stringify(data.savedConfigs)
+          );
+        }
+      } catch (error) {
+        console.error("Error importing configurations:", error);
+        setDataWarning(
+          "Error importing configurations. Please check the file format."
+        );
+      }
+    };
+    reader.readAsText(file);
   };
 
   const processMetrics = (dataToProcess = filteredData) => {
@@ -318,7 +485,7 @@ function App() {
       metricsResult.qualityCohort = generateQualityMetricsCohort(csv);
 
       setMetrics(metricsResult);
-      setShowEmployeeSelection(false); // Hide employee selection once metrics are generated
+      setShowFilterGroupSelection(false); // Hide filter group selection once metrics are generated
 
       // Add a slight delay before setting isProcessing to false
       // This ensures the loader has time to render
@@ -352,7 +519,14 @@ function App() {
     setParsedData(null);
     setFilteredData(null);
     setDataWarning("");
-    setShowEmployeeSelection(false);
+    setActiveFilterGroup(null);
+    setShowFilterGroupSelection(false);
+  };
+
+  // Change filter from dashboard
+  const handleChangeFilter = () => {
+    setMetrics(null);
+    setShowFilterGroupSelection(true);
   };
 
   // Render the enhanced UI splash screen
@@ -420,9 +594,10 @@ function App() {
             <StepItem>
               <StepNumber>2</StepNumber>
               <div>
-                <p className="font-medium">Select employees to analyze</p>
+                <p className="font-medium">Create filter groups</p>
                 <p className="text-sm text-gray-600">
-                  Choose which employees to include in your dashboard.
+                  Organize employees into custom filter groups for your
+                  dashboard.
                 </p>
               </div>
             </StepItem>
@@ -509,9 +684,7 @@ function App() {
                   </div>
                 </>
               ) : (
-                <>
-                  {/* We no longer need this button as the employee selection will trigger metrics generation */}
-                </>
+                <></>
               )}
             </FileInfo>
           )}
@@ -578,10 +751,7 @@ function App() {
               </div>
             </>
           ) : (
-            <>
-              {console.log("Rendering generate metrics button")}
-              {/* We no longer need this button as the employee selection will trigger metrics generation */}
-            </>
+            <></>
           )}
         </FileInfo>
       )}
@@ -602,16 +772,29 @@ function App() {
             </div>
           </div>
           <div id="dashboard-section" className="mt-8">
-            <Dashboard metrics={metrics} />
+            <Dashboard
+              metrics={metrics}
+              activeFilterGroup={activeFilterGroup}
+              filterGroups={filterGroups}
+              onChangeFilter={handleChangeFilter}
+            />
           </div>
         </>
       );
-    } else if (showEmployeeSelection && parsedData) {
-      // Show employee selection if data is parsed but metrics aren't generated yet
+    } else if (showFilterGroupSelection && parsedData) {
+      // Show filter group selection if data is parsed but metrics aren't generated yet
       return (
-        <EmployeeSelection
+        <FilterGroupSelection
           parsedData={parsedData}
-          onEmployeeSelect={handleEmployeeSelect}
+          filterGroups={filterGroups}
+          savedConfigs={savedConfigs}
+          onUpdateFilterGroup={handleUpdateFilterGroup}
+          onSaveConfiguration={saveCurrentConfiguration}
+          onLoadConfiguration={loadSavedConfiguration}
+          onDeleteConfiguration={deleteSavedConfiguration}
+          onExportConfigurations={exportConfigurations}
+          onImportConfigurations={importConfigurations}
+          onFilterSelect={handleFilterGroupSelect}
           isProcessing={isProcessing}
         />
       );

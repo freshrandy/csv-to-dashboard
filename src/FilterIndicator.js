@@ -1,27 +1,11 @@
 import React from "react";
+import Colors from "./Colors";
 
-/**
- * Dashboard Filter Indicator Component
- * Shows which employees are included in the filtered dashboard
- */
-const FilterIndicator = ({ metrics, colors }) => {
-  if (!metrics || !metrics.rawData) return null;
+const FilterIndicator = ({ activeFilter, filterGroups, onChangeFilter }) => {
+  if (!activeFilter || activeFilter === "all" || !filterGroups) return null;
 
-  // Get unique employees in the filtered data
-  const employeeEmails = new Set();
-  metrics.rawData.forEach((row) => {
-    if (
-      row["Employee Email"] &&
-      !row["Employee Email"].includes("@routethis.com")
-    ) {
-      employeeEmails.add(row["Employee Email"]);
-    }
-  });
-
-  const employeeCount = employeeEmails.size;
-
-  // If no employees or very high number (likely unfiltered), don't show the indicator
-  if (employeeCount === 0 || employeeCount > 10) return null;
+  const filterInfo = filterGroups[activeFilter];
+  if (!filterInfo) return null;
 
   // Format employee names for display
   const formatEmployeeName = (email) => {
@@ -39,16 +23,15 @@ const FilterIndicator = ({ metrics, colors }) => {
     return namePart;
   };
 
-  // Get employee names
-  const employeeNames = Array.from(employeeEmails).map(formatEmployeeName);
-
-  // Maximum names to show directly
-  const MAX_NAMES = 3;
-  const displayNames = employeeNames.slice(0, MAX_NAMES);
-  const additionalCount = employeeNames.length - MAX_NAMES;
+  // Get employee names (limit to first 3 plus a count for the rest)
+  const employeeCount = filterInfo.employees?.length || 0;
+  const employeeNames = (filterInfo.employees || [])
+    .slice(0, 3)
+    .map(formatEmployeeName);
+  const additionalCount = Math.max(0, employeeCount - 3);
 
   return (
-    <div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
+    <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
       <div className="flex items-start">
         <div className="flex-shrink-0 mt-0.5">
           <svg
@@ -59,22 +42,32 @@ const FilterIndicator = ({ metrics, colors }) => {
           >
             <path
               fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2h2a1 1 0 100-2H9z"
+              d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
               clipRule="evenodd"
             />
           </svg>
         </div>
-        <div className="ml-3">
+        <div className="ml-3 flex-1">
           <h3 className="text-sm font-medium text-blue-800">
             Filtered Dashboard View
           </h3>
           <div className="mt-1 text-sm text-blue-700">
             <p>
-              This dashboard is showing data for {employeeCount}{" "}
-              {employeeCount === 1 ? "employee" : "employees"}:
-              {displayNames.join(", ")}
-              {additionalCount > 0 ? ` and ${additionalCount} more` : ""}
+              <span className="font-medium">{filterInfo.name}:</span>{" "}
+              {filterInfo.description}
             </p>
+            {employeeCount > 0 ? (
+              <p className="mt-1 text-xs">
+                Showing data for {employeeCount}{" "}
+                {employeeCount === 1 ? "employee" : "employees"}:
+                {employeeNames.join(", ")}
+                {additionalCount > 0 ? ` and ${additionalCount} more` : ""}
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-yellow-600">
+                This group has no employees selected. All data is being shown.
+              </p>
+            )}
           </div>
         </div>
       </div>

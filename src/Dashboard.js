@@ -7,9 +7,14 @@ import ConversionRateChart from "./ConversionRateChart";
 import RegionalPerformanceComparison from "./RegionalPerformanceComparison";
 import AssessmentQualityIndicators from "./AssessmentQualityIndicators";
 import ActivityMetrics from "./ActivityMetrics";
-import FilterIndicator from "./FilterIndicator"; // Import the new component
+import FilterIndicator from "./FilterIndicator";
 
-const Dashboard = ({ metrics }) => {
+const Dashboard = ({
+  metrics,
+  activeFilterGroup,
+  filterGroups,
+  onChangeFilter,
+}) => {
   // Exit early if no metrics
   if (!metrics) return null;
 
@@ -237,7 +242,6 @@ const Dashboard = ({ metrics }) => {
 
   const performanceMetrics = calculatePerformanceMetrics();
 
-  // Calculate regional statistics from filtered data
   // Calculate regional statistics from filtered data - with handling for missing regions
   const calculateRegionalData = () => {
     // Group by region
@@ -635,15 +639,27 @@ const Dashboard = ({ metrics }) => {
       {/* Header with gradient background */}
       <div className="rounded-lg shadow-lg mb-8" style={{ overflow: "hidden" }}>
         <div className="p-6 text-white" style={gradientBg}>
-          <div className="mb-2">
+          <div className="flex justify-between items-center mb-2">
             <h1 className="text-3xl font-bold">{clientName} Dashboard</h1>
+            <button
+              onClick={onChangeFilter}
+              className="px-3 py-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm rounded-md transition-all"
+            >
+              Change Filter
+            </button>
           </div>
           <p className="opacity-90">{dateRange}</p>
         </div>
       </div>
 
-      {/* Add Filter Indicator if we have filtered data */}
-      <FilterIndicator metrics={metrics} colors={colors} />
+      {/* Add Filter Indicator if we have an active filter that isn't 'all' */}
+      {activeFilterGroup && activeFilterGroup !== "all" && (
+        <FilterIndicator
+          activeFilter={activeFilterGroup}
+          filterGroups={filterGroups}
+          colors={colors}
+        />
+      )}
 
       <div className="flex flex-col gap-6">
         {/* Activity Metrics Section - Using the ActivityMetrics component */}
