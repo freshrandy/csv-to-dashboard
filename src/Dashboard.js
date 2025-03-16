@@ -1,13 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import WeeklyProgressChart from "./WeeklyProgressChart";
 import TechnicianQualityChart from "./TechnicianQualityChart";
 import EmployeePerformanceTable from "./EmployeePerformanceTable";
-import EmployeeQualityCohortTable from "./EmployeeQualityCohortTable";
 import ConversionRateChart from "./ConversionRateChart";
 import RegionalPerformanceComparison from "./RegionalPerformanceComparison";
 import AssessmentQualityIndicators from "./AssessmentQualityIndicators";
 import ActivityMetrics from "./ActivityMetrics";
 import FilterIndicator from "./FilterIndicator";
+import MetricsGlossary from "./MetricsGlossary";
 
 const Dashboard = ({
   metrics,
@@ -15,6 +15,9 @@ const Dashboard = ({
   filterGroups,
   onChangeFilter,
 }) => {
+  // Add state for metrics glossary modal
+  const [showMetricsGlossary, setShowMetricsGlossary] = useState(false);
+
   // Exit early if no metrics
   if (!metrics) return null;
 
@@ -641,12 +644,35 @@ const Dashboard = ({
         <div className="p-6 text-white" style={gradientBg}>
           <div className="flex justify-between items-center mb-2">
             <h1 className="text-3xl font-bold">{clientName} Dashboard</h1>
-            <button
-              onClick={onChangeFilter}
-              className="px-3 py-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm rounded-md transition-all"
-            >
-              Change Filter
-            </button>
+            <div className="flex space-x-3">
+              {/* Add Metrics Glossary button */}
+              <button
+                onClick={() => setShowMetricsGlossary(true)}
+                className="px-3 py-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm rounded-md transition-all flex items-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Metrics Glossary
+              </button>
+              <button
+                onClick={onChangeFilter}
+                className="px-3 py-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm rounded-md transition-all"
+              >
+                Change Filter
+              </button>
+            </div>
           </div>
           <p className="opacity-90">{dateRange}</p>
         </div>
@@ -726,6 +752,10 @@ const Dashboard = ({
           <span>Dashboard by {preparedBy}</span>
         </div>
       </div>
+      <MetricsGlossary
+        isOpen={showMetricsGlossary}
+        onClose={() => setShowMetricsGlossary(false)}
+      />
     </div>
   );
 };
