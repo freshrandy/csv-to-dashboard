@@ -1,7 +1,7 @@
 import React from "react";
 import Colors from "./Colors";
 import FilterIndicator from "./FilterIndicator";
-import TooltipToggle from "./TooltipToggle"; // Import the tooltip toggle component
+// import TooltipToggle from "./TooltipToggle"; // Import the tooltip toggle component, turned off temporarily
 
 /**
  * Enhanced Dashboard Header Component
@@ -30,7 +30,7 @@ const DashboardHeader = ({
             <h1 className="text-3xl font-bold">{clientName} Dashboard</h1>
             <div className="flex items-center space-x-3">
               {/* Add the tooltip toggle */}
-              <TooltipToggle />
+              {/* <TooltipToggle /> */}
 
               <button
                 onClick={onOpenGlossary}

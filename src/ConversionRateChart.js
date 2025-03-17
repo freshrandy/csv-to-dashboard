@@ -135,7 +135,7 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
               className="p-1 text-xs border border-gray-300 rounded"
             >
               <option value="completed">Scans</option>
-              <option value="installations">Installations</option>
+              <option value="installations">Mesh Nodes</option>
               <option value="uniqueHomes">Unique Homes</option>
             </select>
           </div>
@@ -263,7 +263,7 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
                   volumeMetric === "completed"
                     ? "Scans"
                     : volumeMetric === "installations"
-                    ? "Installations"
+                    ? "Mesh Nodes"
                     : "Unique Homes"
                 }
                 stroke={
@@ -332,7 +332,7 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
               {volumeMetric === "completed"
                 ? "Total Scans"
                 : volumeMetric === "installations"
-                ? "Access Points Installed"
+                ? "Mesh Nodes Installed"
                 : "Unique Homes Assessed"}
               )
             </span>

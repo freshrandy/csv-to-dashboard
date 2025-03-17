@@ -58,6 +58,28 @@ const WeeklyProgressChart = ({ weeklyData }) => {
         Weekly Progress 📅
       </h2>
 
+      {/* Chart description */}
+      <div className="bg-blue-50 p-3 rounded-lg mb-4 text-sm text-blue-800">
+        <p className="flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 mr-2 text-blue-600"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2h2a1 1 0 100-2H9z"
+              clipRule="evenodd"
+            />
+          </svg>
+          This chart tracks your operational activity over time, showing scan
+          volume, installations, and unique locations assessed. Weekly patterns
+          can reveal seasonal trends, team capacity changes, and the impact of
+          process improvements.
+        </p>
+      </div>
+
       {/* Metric toggles */}
       <div className="mb-4 flex flex-wrap gap-2">
         {Object.entries(metricConfig).map(([metric, config]) => (
