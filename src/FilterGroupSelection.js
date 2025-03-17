@@ -26,19 +26,46 @@ const FilterGroupSelection = ({
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [configName, setConfigName] = useState("");
   const [employees, setEmployees] = useState([]);
+  const [hasEmployeeData, setHasEmployeeData] = useState(true);
   const fileInputRef = React.useRef(null);
 
-  // Extract unique employees from the parsed data
+  // Determine if data has employee information
   useEffect(() => {
     if (parsedData && parsedData.length > 0) {
-      // Get unique employee emails
+      // Check for the presence of an "Employee Email" column with valid data
+      const hasEmployeeEmailColumn = parsedData.some(
+        (row) =>
+          row.hasOwnProperty("Employee Email") || row.hasOwnProperty("Employee")
+      );
+
+      // Check if there are actual employee emails in the data
+      const hasEmployeeValues = parsedData.some((row) => {
+        const email = row["Employee Email"] || row["Employee"];
+        return (
+          email &&
+          typeof email === "string" &&
+          !email.includes("@routethis.com")
+        );
+      });
+
+      // Set state based on results
+      setHasEmployeeData(hasEmployeeEmailColumn && hasEmployeeValues);
+
+      if (!hasEmployeeEmailColumn || !hasEmployeeValues) {
+        console.log("No employee data found in CSV");
+        return;
+      }
+
+      // Extract unique employee emails from data
       const employeeSet = new Set();
       parsedData.forEach((row) => {
+        const email = row["Employee Email"] || row["Employee"];
         if (
-          row["Employee Email"] &&
-          !row["Employee Email"].includes("@routethis.com")
+          email &&
+          typeof email === "string" &&
+          !email.includes("@routethis.com")
         ) {
-          employeeSet.add(row["Employee Email"]);
+          employeeSet.add(email);
         }
       });
 
@@ -46,7 +73,7 @@ const FilterGroupSelection = ({
       const employeeArray = Array.from(employeeSet).map((email) => {
         // Get count of entries for this employee
         const count = parsedData.filter(
-          (row) => row["Employee Email"] === email
+          (row) => row["Employee Email"] === email || row["Employee"] === email
         ).length;
 
         // Format display name
@@ -165,6 +192,86 @@ const FilterGroupSelection = ({
     setShowMenu(false);
   };
 
+  // Render the no employee data view
+  const renderNoEmployeeDataView = () => (
+    <div>
+      <div className="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+        <div className="flex items-start">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 mr-3 text-yellow-600 flex-shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <div>
+            <h3 className="text-lg font-medium text-yellow-800 mb-1">
+              No Employee Data Detected
+            </h3>
+            <p className="text-sm text-yellow-700">
+              The uploaded CSV file does not contain employee information.
+              Employee-based filtering options are not available, but you can
+              still generate a dashboard with all the data.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="text-center">
+        <button
+          onClick={() => onFilterSelect("all")}
+          className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+          disabled={isProcessing}
+        >
+          {isProcessing ? (
+            <span className="flex items-center">
+              <svg
+                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Processing...
+            </span>
+          ) : (
+            "Generate Dashboard with All Data"
+          )}
+        </button>
+      </div>
+
+      <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+        <h3 className="text-lg font-medium mb-2">Info</h3>
+        <p className="text-sm text-gray-600">
+          Without employee data, the dashboard will still show aggregate
+          performance metrics, but employee-specific views will be limited. To
+          enable employee filtering in the future, make sure your CSV includes
+          an "Employee Email" column with valid employee email addresses.
+        </p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
       {/* Header section with title and save/load menu */}
@@ -173,91 +280,41 @@ const FilterGroupSelection = ({
           Dashboard Filter Selection
         </h2>
 
-        {/* Save/Load button and menu */}
-        <div className="relative">
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className="px-3 py-2 flex items-center text-sm font-medium bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+        {/* Save/Load button and menu - only show if we have employee data */}
+        {hasEmployeeData && (
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="px-3 py-2 flex items-center text-sm font-medium bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
-              />
-            </svg>
-            Save/Load Groups
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+                />
+              </svg>
+              Save/Load Groups
+            </button>
 
-          {/* Dropdown menu */}
-          {showMenu && (
-            <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-              <div className="p-2">
-                <div className="text-xs text-gray-500 mb-2 px-2">
-                  Browser Storage (This Device Only)
-                </div>
-                <button
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center rounded"
-                  onClick={() => {
-                    setSaveDialogOpen(true);
-                    setShowMenu(false);
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-                    />
-                  </svg>
-                  Save to This Browser
-                </button>
-                <button
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center rounded"
-                  onClick={() => {
-                    setLoadDialogOpen(true);
-                    setShowMenu(false);
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                    />
-                  </svg>
-                  Load from This Browser
-                </button>
-
-                <div className="border-t border-gray-200 my-2 pt-2">
+            {/* Dropdown menu */}
+            {showMenu && (
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                <div className="p-2">
                   <div className="text-xs text-gray-500 mb-2 px-2">
-                    Share Between Devices/Users
+                    Browser Storage (This Device Only)
                   </div>
                   <button
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center rounded"
                     onClick={() => {
-                      onExportConfigurations();
+                      setSaveDialogOpen(true);
                       setShowMenu(false);
                     }}
                   >
@@ -272,12 +329,18 @@ const FilterGroupSelection = ({
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
                       />
                     </svg>
-                    Download as File
+                    Save to This Browser
                   </button>
-                  <label className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center cursor-pointer rounded">
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center rounded"
+                    onClick={() => {
+                      setLoadDialogOpen(true);
+                      setShowMenu(false);
+                    }}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4 mr-2"
@@ -292,24 +355,74 @@ const FilterGroupSelection = ({
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
                       />
                     </svg>
-                    Upload from File
-                    <input
-                      type="file"
-                      className="hidden"
-                      ref={fileInputRef}
-                      accept=".json"
-                      onChange={handleFileUpload}
-                    />
-                  </label>
+                    Load from This Browser
+                  </button>
+
+                  <div className="border-t border-gray-200 my-2 pt-2">
+                    <div className="text-xs text-gray-500 mb-2 px-2">
+                      Share Between Devices/Users
+                    </div>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center rounded"
+                      onClick={() => {
+                        onExportConfigurations();
+                        setShowMenu(false);
+                      }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
+                      </svg>
+                      Download as File
+                    </button>
+                    <label className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center cursor-pointer rounded">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                        />
+                      </svg>
+                      Upload from File
+                      <input
+                        type="file"
+                        className="hidden"
+                        ref={fileInputRef}
+                        accept=".json"
+                        onChange={handleFileUpload}
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {!editingGroup ? (
-        // Filter Group Selection View
+      {/* Conditionally render the appropriate view based on whether we have employee data */}
+      {!hasEmployeeData ? (
+        // No employee data view
+        renderNoEmployeeDataView()
+      ) : !editingGroup ? (
+        // Filter Group Selection View (for data with employees)
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-7">
             <div className="mb-4 p-4 bg-blue-50 rounded-lg">

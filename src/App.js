@@ -309,6 +309,19 @@ function App() {
         const hasAddresses =
           "Address" in sampleRow && sampleRow.Address !== null;
 
+        // Check for employee data
+        const hasEmployeeEmailColumn =
+          "Employee Email" in sampleRow || "Employee" in sampleRow;
+
+        const hasEmployeeData = results.data.some((row) => {
+          const email = row["Employee Email"] || row["Employee"];
+          return (
+            email &&
+            typeof email === "string" &&
+            !email.includes("@routethis.com")
+          );
+        });
+
         // Set parsed data
         setParsedData(results.data);
 
@@ -321,11 +334,23 @@ function App() {
           setShowFilterGroupSelection(true);
         }, 300);
 
-        // Show a warning about missing data
+        // Show warnings about missing data
+        let warnings = [];
+
         if (!hasAddresses) {
-          setDataWarning(
-            "Note: Address data is missing. Some metrics will be based on assessment count instead of unique locations."
+          warnings.push(
+            "Address data is missing. Some metrics will be based on assessment count instead of unique locations."
           );
+        }
+
+        if (!hasEmployeeEmailColumn || !hasEmployeeData) {
+          warnings.push(
+            "Employee data is missing or incomplete. Employee-specific filtering will be limited."
+          );
+        }
+
+        if (warnings.length > 0) {
+          setDataWarning("Note: " + warnings.join(" "));
         } else {
           setDataWarning("");
         }
@@ -352,11 +377,20 @@ function App() {
     // Get the selected group
     const selectedGroup = filterGroups[groupKey];
 
+    // Check if the group has employees defined
+    // This handles the case of empty filter groups created when no employee data exists
+    if (!selectedGroup.employees || selectedGroup.employees.length === 0) {
+      processMetrics(parsedData); // Process all data if no employees in group
+      return;
+    }
+
     // Filter the data to only include rows from selected employees
     const filtered = parsedData.filter(
       (row) =>
-        selectedGroup.employees.includes(row["Employee Email"]) ||
-        !row["Employee Email"] // Include rows without employee email
+        selectedGroup.employees.includes(
+          row["Employee Email"] || row["Employee"]
+        ) ||
+        (!row["Employee Email"] && !row["Employee"]) // Include rows without employee email
     );
 
     setFilteredData(filtered);

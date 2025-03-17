@@ -26,7 +26,7 @@ const Dashboard = ({
   // Extract data from metrics
   const { summary, metrics: metricsData } = metrics;
 
-  // Fix 2025-03-11, possible spaghetti
+  // Employee Table Function
   const employeeTableData =
     metrics && metrics.rawData
       ? metrics.rawData.filter(
@@ -35,6 +35,31 @@ const Dashboard = ({
             !row["Employee Email"].includes("@routethis.com")
         )
       : [];
+
+  // Function to check if the data has employee information
+  // Moved out of calculateInstallationMetrics to make it accessible
+  const hasEmployeeData = () => {
+    if (!metrics || !metrics.rawData || metrics.rawData.length === 0) {
+      return false;
+    }
+
+    // Check if the data has an "Employee Email" column with valid data
+    const hasEmployeeColumn = metrics.rawData.some((row) => {
+      return (
+        row.hasOwnProperty("Employee Email") || row.hasOwnProperty("Employee")
+      );
+    });
+
+    // Check if there are actual employee emails in the data
+    const hasEmployeeValues = metrics.rawData.some((row) => {
+      const email = row["Employee Email"] || row["Employee"];
+      return (
+        email && typeof email === "string" && !email.includes("@routethis.com")
+      );
+    });
+
+    return hasEmployeeColumn && hasEmployeeValues;
+  };
 
   // Check if we have address data
   const hasAddresses = summary.hasAddresses;
@@ -636,6 +661,7 @@ const Dashboard = ({
         filterGroups={filterGroups}
         onChangeFilter={onChangeFilter}
         onOpenGlossary={() => setShowMetricsGlossary(true)}
+        hasEmployeeData={hasEmployeeData()}
       />
 
       <div className="flex flex-col gap-6">
@@ -666,23 +692,85 @@ const Dashboard = ({
       </div>
 
       {/* Employee Performance Table */}
-      <div className="mt-8">
-        <EmployeePerformanceTable
-          data={employeeTableData}
-          dateRange={dateRange} // Pass correct date range to component
-        />
-      </div>
+      {hasEmployeeData() ? (
+        <div className="mt-8">
+          <EmployeePerformanceTable
+            data={employeeTableData}
+            dateRange={dateRange}
+          />
+        </div>
+      ) : (
+        <div className="mt-8 p-6 bg-gray-50 rounded-lg shadow-md">
+          <div className="flex items-start">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 mr-3 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <h3 className="text-lg font-medium text-gray-700 mb-2">
+                Employee Performance Table Not Available
+              </h3>
+              <p className="text-sm text-gray-600">
+                Employee performance rankings could not be displayed because the
+                uploaded CSV file doesn't contain employee data. To view
+                employee performance metrics, please upload a CSV file that
+                includes an "Employee Email" column with valid employee emails.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quality metrics */}
-      {metrics.qualityCohort && (
+      {metrics.qualityCohort && hasEmployeeData() ? (
         <div className="mt-8">
           <TechnicianQualityChart
             cohortData={metrics.qualityCohort}
-            filteredData={employeeTableData} // Pass filtered data for possible recalculation
-            dateRange={dateRange} // Pass correct date range
+            filteredData={employeeTableData}
+            dateRange={dateRange}
           />
         </div>
-      )}
+      ) : metrics.qualityCohort ? (
+        <div className="mt-8 p-6 bg-gray-50 rounded-lg shadow-md">
+          <div className="flex items-start">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 mr-3 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <h3 className="text-lg font-medium text-gray-700 mb-2">
+                Employee Quality Data Not Available
+              </h3>
+              <p className="text-sm text-gray-600">
+                Employee quality metrics could not be displayed because the
+                uploaded CSV file doesn't contain employee data. To view
+                employee performance charts, please upload a CSV file that
+                includes an "Employee Email" column with valid employee emails.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Footer with gradient using our new color system */}
       <div
