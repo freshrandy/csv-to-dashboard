@@ -198,7 +198,7 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
               "h-4"
             )}
             <div className="flex justify-between text-xs text-gray-500 mt-2">
-              <span>{locationTermPlural} with installations</span>
+              <span>{locationTermPlural} with Access Points (%)</span>
               <span className="font-medium">
                 {metrics.conversionRate.homes} converted
               </span>

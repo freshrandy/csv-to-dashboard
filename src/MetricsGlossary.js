@@ -87,7 +87,7 @@ const MetricsGlossary = ({ isOpen, onClose }) => {
         calculation:
           "(Number of unique addresses with installations ÷ Total number of unique addresses assessed) × 100",
         description:
-          "Percentage of assessed locations that resulted in at least one installation",
+          "Percentage of assessed locations where technicians installed at least one access point. Example: If technicians visit 100 homes but only install access points in 14 of them, the installation rate is 14 percent.",
       },
       {
         name: "Regional Conversion Rates",
