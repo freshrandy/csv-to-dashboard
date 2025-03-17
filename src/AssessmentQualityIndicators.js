@@ -11,6 +11,12 @@ import Colors from "./Colors";
  * @param {Object} props.colors - Brand color scheme for styling
  */
 const AssessmentQualityIndicators = ({ speedTestData, floorData, colors }) => {
+  // Helper function to format percentages consistently
+  const formatPercent = (value) => {
+    // Use toFixed(1) to limit to 1 decimal place
+    return value.toFixed(1);
+  };
+
   return (
     <div className="bg-white p-5 rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4" style={{ color: Colors.ash }}>
@@ -54,7 +60,7 @@ const AssessmentQualityIndicators = ({ speedTestData, floorData, colors }) => {
                   fontWeight="bold"
                   fill={colors.jade}
                 >
-                  {speedTestData[0].value}%
+                  {formatPercent(speedTestData[0].value)}%
                 </text>
               </svg>
             </div>
@@ -66,14 +72,18 @@ const AssessmentQualityIndicators = ({ speedTestData, floorData, colors }) => {
                   className="w-4 h-4 mr-2"
                   style={{ backgroundColor: colors.jade }}
                 ></div>
-                <span>Above 80% of Plan: {speedTestData[0].value}%</span>
+                <span>
+                  Above 80% of Plan: {formatPercent(speedTestData[0].value)}%
+                </span>
               </div>
               <div className="flex items-center">
                 <div
                   className="w-4 h-4 mr-2"
                   style={{ backgroundColor: "#EF4444" }}
                 ></div>
-                <span>Below 80% of Plan: {speedTestData[1].value}%</span>
+                <span>
+                  Below 80% of Plan: {formatPercent(speedTestData[1].value)}%
+                </span>
               </div>
             </div>
           </div>
@@ -119,7 +129,7 @@ const AssessmentQualityIndicators = ({ speedTestData, floorData, colors }) => {
                   fontWeight="bold"
                   fill={colors.electricBlue}
                 >
-                  {floorData[0].value}%
+                  {formatPercent(floorData[0].value)}%
                 </text>
               </svg>
             </div>
@@ -131,14 +141,18 @@ const AssessmentQualityIndicators = ({ speedTestData, floorData, colors }) => {
                   className="w-4 h-4 mr-2"
                   style={{ backgroundColor: colors.electricBlue }}
                 ></div>
-                <span>Multi-Floor Assessments: {floorData[0].value}%</span>
+                <span>
+                  Multi-Floor Assessments: {formatPercent(floorData[0].value)}%
+                </span>
               </div>
               <div className="flex items-center">
                 <div
                   className="w-4 h-4 mr-2"
                   style={{ backgroundColor: colors.cloudGrey }}
                 ></div>
-                <span>Single-Floor Assessments: {floorData[1].value}%</span>
+                <span>
+                  Single-Floor Assessments: {formatPercent(floorData[1].value)}%
+                </span>
               </div>
             </div>
           </div>

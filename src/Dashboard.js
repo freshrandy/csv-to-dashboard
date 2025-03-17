@@ -248,7 +248,9 @@ const Dashboard = ({
         ? totalRoomsTested / employeeTableData.length
         : 0;
     const speedTestSuccessRate =
-      speedTestCount > 0 ? (successfulSpeedTests / speedTestCount) * 100 : 0;
+      speedTestCount > 0
+        ? parseFloat(((successfulSpeedTests / speedTestCount) * 100).toFixed(1))
+        : 0;
     const avgQualityScore =
       qualityScoreCount > 0 ? totalQualityScore / qualityScoreCount : 0;
 
@@ -260,6 +262,50 @@ const Dashboard = ({
   };
 
   const performanceMetrics = calculatePerformanceMetrics();
+
+  // Calculate multi-floor assessment metrics
+  const calculateMultiFloorAssessments = () => {
+    if (!employeeTableData || employeeTableData.length === 0) {
+      return {
+        multiFloorCount: 0,
+        singleFloorCount: 0,
+        multiFloorPercentage: 0,
+        singleFloorPercentage: 0,
+      };
+    }
+
+    let multiFloorCount = 0;
+    let singleFloorCount = 0;
+
+    employeeTableData.forEach((row) => {
+      // Check if this assessment covered multiple floors
+      // Assuming an assessment is multi-floor if Levels Tested > 1 (or Total Levels > 1 as backup)
+      if (
+        (row["Levels Tested"] && row["Levels Tested"] > 1) ||
+        (row["Total Levels"] && row["Total Levels"] > 1)
+      ) {
+        multiFloorCount++;
+      } else {
+        singleFloorCount++;
+      }
+    });
+
+    const total = multiFloorCount + singleFloorCount;
+
+    // Round the percentages to 1 decimal place within the function
+    const multiFloorPercentage =
+      total > 0 ? parseFloat(((multiFloorCount / total) * 100).toFixed(1)) : 0;
+
+    const singleFloorPercentage =
+      total > 0 ? parseFloat(((singleFloorCount / total) * 100).toFixed(1)) : 0;
+
+    return {
+      multiFloorCount,
+      singleFloorCount,
+      multiFloorPercentage,
+      singleFloorPercentage,
+    };
+  };
 
   // Calculate regional statistics from filtered data - with handling for missing regions
   const calculateRegionalData = () => {
@@ -629,21 +675,24 @@ const Dashboard = ({
     },
     {
       name: "Below 80% of Plan",
-      value: 100 - performanceMetrics.speedTestSuccessRate,
+      value: parseFloat(
+        (100 - performanceMetrics.speedTestSuccessRate).toFixed(1)
+      ),
       color: Colors.status.error, // Use our new color system
     },
   ];
 
-  // Multi-Floor Assessment
+  // Multi-Floor Assessment - get real data from calculation
+  const floorAssessments = calculateMultiFloorAssessments();
   const floorData = [
     {
       name: "Multi-Floor Assessments",
-      value: 35.0, // Placeholder - not directly available in our metrics
+      value: parseFloat(floorAssessments.multiFloorPercentage.toFixed(1)),
       color: Colors.secondary[500], // Use our new color system
     },
     {
       name: "Single-Floor Assessments",
-      value: 65.0,
+      value: parseFloat(floorAssessments.singleFloorPercentage.toFixed(1)),
       color: Colors.gray[200], // Use our new color system
     },
   ];
