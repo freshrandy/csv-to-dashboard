@@ -1,6 +1,7 @@
 import React from "react";
 import Colors from "./Colors";
 import FilterIndicator from "./FilterIndicator";
+import TooltipToggle from "./TooltipToggle"; // Import the tooltip toggle component
 
 /**
  * Enhanced Dashboard Header Component
@@ -27,7 +28,10 @@ const DashboardHeader = ({
         <div className="p-6 text-white" style={headerStyle}>
           <div className="flex justify-between items-center mb-2">
             <h1 className="text-3xl font-bold">{clientName} Dashboard</h1>
-            <div className="flex space-x-3">
+            <div className="flex items-center space-x-3">
+              {/* Add the tooltip toggle */}
+              <TooltipToggle />
+
               <button
                 onClick={onOpenGlossary}
                 className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm rounded-lg transition-all flex items-center"

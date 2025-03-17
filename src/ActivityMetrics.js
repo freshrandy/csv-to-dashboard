@@ -1,6 +1,7 @@
 import React from "react";
 import Colors from "./Colors";
-import MetricCard from "./MetricCard"; // Using our updated MetricCard component
+import MetricCard from "./MetricCard";
+import { tooltipContent } from "./tooltipContent";
 
 /**
  * Enhanced ActivityMetrics Component
@@ -78,7 +79,6 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
           Volume Metrics
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {/* Using our updated MetricCard component without icons and trends */}
           <MetricCard
             title={`Unique ${locationTermPlural}`}
             value={metrics.uniqueVisits}
@@ -86,6 +86,8 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
               hasAddresses ? "unique addresses" : "distinct assessments"
             }
             colorScheme="primary"
+            tooltipContent={tooltipContent.uniqueVisits.content}
+            tooltipTitle={tooltipContent.uniqueVisits.title}
           />
 
           <MetricCard
@@ -93,6 +95,8 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
             value={metrics.totalScans}
             subtitle="inc. incomplete"
             colorScheme="secondary"
+            tooltipContent={tooltipContent.totalScans.content}
+            tooltipTitle={tooltipContent.totalScans.title}
           />
         </div>
 
@@ -109,6 +113,8 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
             value={metrics.activeEmployees}
             subtitle="employees"
             colorScheme="primary"
+            tooltipContent={tooltipContent.activePersonnel.content}
+            tooltipTitle={tooltipContent.activePersonnel.title}
           />
 
           <MetricCard
@@ -116,6 +122,8 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
             value={(metrics.totalScans / metrics.activeEmployees).toFixed(1)}
             subtitle="scans"
             colorScheme="secondary"
+            tooltipContent={tooltipContent.activePersonnel.content}
+            tooltipTitle={tooltipContent.activePersonnel.title}
           />
 
           <MetricCard
@@ -123,6 +131,8 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
             value={(metrics.uniqueVisits / metrics.activeEmployees).toFixed(1)}
             subtitle={locationTermPlural.toLowerCase()}
             colorScheme="success"
+            tooltipContent={tooltipContent.activePersonnel.content}
+            tooltipTitle={tooltipContent.activePersonnel.title}
           />
 
           <MetricCard
@@ -130,6 +140,8 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
             value={metrics.avgRooms}
             subtitle="rooms tested"
             colorScheme="info"
+            tooltipContent={tooltipContent.activePersonnel.content}
+            tooltipTitle={tooltipContent.activePersonnel.title}
           />
         </div>
 
@@ -142,68 +154,24 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Access Points Installation */}
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-sm font-medium text-gray-700">
-                Access Points Installation
-              </span>
-              <div className="flex items-center">
-                <span
-                  className="text-lg font-bold mr-1"
-                  style={{ color: Colors.primary[400] }}
-                >
-                  {metrics.accessPoints.percentage}%
-                </span>
-                <span className="text-sm font-medium text-gray-600">
-                  ({metrics.accessPoints.installed}/
-                  {metrics.accessPoints.recommended})
-                </span>
-              </div>
-            </div>
-            {renderProgressBar(
-              metrics.accessPoints.percentage,
-              "primary",
-              "h-4"
-            )}
-            <div className="flex justify-between text-xs text-gray-500 mt-2">
-              <span>Installed vs Recommended</span>
-              <span className="font-medium">
-                {metrics.accessPoints.installed} installed
-              </span>
-            </div>
-          </div>
+          <MetricCard
+            title="Mesh Nodes Installed"
+            value={`${metrics.accessPoints.percentage}%`}
+            subtitle={`${metrics.accessPoints.installed}/${metrics.accessPoints.recommended} installed`}
+            colorScheme="primary"
+            tooltipContent={tooltipContent.accessPoints.content}
+            tooltipTitle={tooltipContent.accessPoints.title}
+          />
 
           {/* Conversion Rate */}
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-sm font-medium text-gray-700">
-                {locationTerm} Conversion Rate
-              </span>
-              <div className="flex items-center">
-                <span
-                  className="text-lg font-bold mr-1"
-                  style={{ color: Colors.secondary[500] }}
-                >
-                  {metrics.conversionRate.value}%
-                </span>
-                <span className="text-sm font-medium text-gray-600">
-                  ({metrics.conversionRate.homes}/{metrics.conversionRate.total}
-                  )
-                </span>
-              </div>
-            </div>
-            {renderProgressBar(
-              metrics.conversionRate.value,
-              "secondary",
-              "h-4"
-            )}
-            <div className="flex justify-between text-xs text-gray-500 mt-2">
-              <span>{locationTermPlural} with Access Points (%)</span>
-              <span className="font-medium">
-                {metrics.conversionRate.homes} converted
-              </span>
-            </div>
-          </div>
+          <MetricCard
+            title={`${locationTerm} Conversion Rate`}
+            value={`${metrics.conversionRate.value}%`}
+            subtitle={`${metrics.conversionRate.homes}/${metrics.conversionRate.total} converted`}
+            colorScheme="secondary"
+            tooltipContent={tooltipContent.conversionRate.content}
+            tooltipTitle={tooltipContent.conversionRate.title}
+          />
         </div>
       </div>
     </div>

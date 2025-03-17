@@ -9,7 +9,8 @@ import Dashboard from "./Dashboard";
 import { generateQualityMetricsCohort } from "./cohortAnalysis";
 import EmployeePerformanceTable from "./EmployeePerformanceTable";
 import EmployeeQualityCohortTable from "./EmployeeQualityCohortTable";
-import FilterGroupSelection from "./FilterGroupSelection"; // New component
+import FilterGroupSelection from "./FilterGroupSelection";
+import { TooltipProvider } from "./TooltipContext"; // Import the TooltipProvider
 
 // Styled components
 const AppContainer = styled.div`
@@ -838,7 +839,13 @@ function App() {
     }
   };
 
-  return <AppContainer>{renderContent()}</AppContainer>;
+  return (
+    <TooltipProvider>
+      {" "}
+      {/* Wrap the entire application with TooltipProvider */}
+      <AppContainer>{renderContent()}</AppContainer>
+    </TooltipProvider>
+  );
 }
 
 export default App;

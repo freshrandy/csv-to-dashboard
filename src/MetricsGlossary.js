@@ -45,13 +45,12 @@ const MetricsGlossary = ({ isOpen, onClose }) => {
         name: "Installation Rate",
         calculation: "(Total Nodes Installed ÷ Total Nodes Recommended) × 100",
         description:
-          "Percentage of recommended access points that were actually installed",
+          "Percentage of recommended mesh nodes that were actually installed",
       },
       {
         name: "Average Nodes Recommended",
         calculation: "Total Nodes Recommended ÷ Number of assessments",
-        description:
-          "Average number of access points recommended per assessment",
+        description: "Average number of mesh nodes recommended per assessment",
       },
     ],
     quality: [
