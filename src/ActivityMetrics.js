@@ -157,7 +157,7 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
           <MetricCard
             title="Mesh Nodes Installed"
             value={`${metrics.accessPoints.percentage}%`}
-            subtitle={`${metrics.accessPoints.installed}/${metrics.accessPoints.recommended} installed`}
+            subtitle={`${metrics.accessPoints.installed}/${metrics.accessPoints.recommended} mesh nodes installed / recommended`}
             colorScheme="primary"
             tooltipContent={tooltipContent.accessPoints.content}
             tooltipTitle={tooltipContent.accessPoints.title}

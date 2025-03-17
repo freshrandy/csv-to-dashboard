@@ -84,9 +84,9 @@ const MetricsGlossary = ({ isOpen, onClose }) => {
       {
         name: "Home/Assessment Conversion Rate",
         calculation:
-          "(Number of unique addresses with installations ÷ Total number of unique addresses assessed) × 100",
+          "(Number of unique addresses with at least one mesh node installed ÷ Total number of unique addresses assessed) × 100",
         description:
-          "Percentage of assessed locations where technicians installed at least one access point. Example: If technicians visit 100 homes but only install access points in 14 of them, the installation rate is 14 percent.",
+          "Percentage of assessed locations where technicians installed at least one mesh nodes. Example: If technicians visit 100 homes but only install mesh nodes in 14 of them, the conversion rate is 14 percent.",
       },
       {
         name: "Regional Conversion Rates",
