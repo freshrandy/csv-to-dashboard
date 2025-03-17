@@ -17,6 +17,9 @@ const Dashboard = ({
   filterGroups,
   onChangeFilter,
 }) => {
+  // Assessment Quality slider, move to somewhere more logical after.
+  const [speedTestThreshold, setSpeedTestThreshold] = useState(80); // Default to 80%
+
   // Add state for metrics glossary modal
   const [showMetricsGlossary, setShowMetricsGlossary] = useState(false);
 
@@ -227,8 +230,11 @@ const Dashboard = ({
         totalActualSpeed += row["Actual Speed"];
         speedTestCount++;
 
-        // Count tests with at least 80% of expected
-        if (row["Actual Speed"] >= 0.8 * row["Expected Speed"]) {
+        // Use dynamic threshold instead of hardcoded 80%
+        if (
+          row["Actual Speed"] >=
+          (speedTestThreshold / 100) * row["Expected Speed"]
+        ) {
           successfulSpeedTests++;
         }
       }
@@ -669,16 +675,16 @@ const Dashboard = ({
   // Speed Test Performance
   const speedTestData = [
     {
-      name: "Above 80% of Plan",
+      name: `Above ${speedTestThreshold}% of Plan`,
       value: performanceMetrics.speedTestSuccessRate,
-      color: Colors.primary[400], // Use our new color system
+      color: Colors.primary[400],
     },
     {
-      name: "Below 80% of Plan",
+      name: `Below ${speedTestThreshold}% of Plan`,
       value: parseFloat(
         (100 - performanceMetrics.speedTestSuccessRate).toFixed(1)
       ),
-      color: Colors.status.error, // Use our new color system
+      color: Colors.status.error,
     },
   ];
 
@@ -737,6 +743,12 @@ const Dashboard = ({
           speedTestData={speedTestData}
           floorData={floorData}
           colors={Colors}
+          speedTestThreshold={speedTestThreshold}
+          onSpeedTestThresholdChange={(newThreshold) => {
+            setSpeedTestThreshold(newThreshold);
+            // Recalculate metrics with new threshold
+            // This will cause performanceMetrics and speedTestData to update
+          }}
         />
       </div>
 

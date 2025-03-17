@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Colors from "./Colors";
 
 /**
@@ -9,8 +9,35 @@ import Colors from "./Colors";
  * @param {Array} props.speedTestData - Data for speed test chart with name, value, color
  * @param {Array} props.floorData - Data for floor assessment chart with name, value, color
  * @param {Object} props.colors - Brand color scheme for styling
+ * @param {number} props.speedTestThreshold - Current threshold for speed test success rate (percentage)
+ * @param {function} props.onSpeedTestThresholdChange - Handler for threshold changes
  */
-const AssessmentQualityIndicators = ({ speedTestData, floorData, colors }) => {
+const AssessmentQualityIndicators = ({
+  speedTestData,
+  floorData,
+  colors,
+  speedTestThreshold = 80, // Default to 80% if not provided
+  onSpeedTestThresholdChange = () => {}, // No-op if not provided
+}) => {
+  // Local state to track the slider value
+  const [sliderValue, setSliderValue] = useState(speedTestThreshold);
+
+  // Update local slider value when prop changes
+  useEffect(() => {
+    setSliderValue(speedTestThreshold);
+  }, [speedTestThreshold]);
+
+  // Handle slider changes
+  const handleSliderChange = (e) => {
+    const newValue = parseInt(e.target.value, 10);
+    setSliderValue(newValue);
+  };
+
+  // Handle slider after user finishes dragging
+  const handleSliderChangeComplete = () => {
+    onSpeedTestThresholdChange(sliderValue);
+  };
+
   // Helper function to format percentages consistently
   const formatPercent = (value) => {
     // Use toFixed(1) to limit to 1 decimal place and ensure we're working with a number
@@ -25,9 +52,42 @@ const AssessmentQualityIndicators = ({ speedTestData, floorData, colors }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Speed Test Success Rate */}
         <div className="flex flex-col items-center justify-center">
-          <h3 className="text-sm font-medium mb-4 text-gray-700">
+          <h3 className="text-sm font-medium mb-2 text-gray-700">
             Speed Test Success Rate
           </h3>
+          <div className="text-xs text-center text-gray-500 mb-3">
+            Percentage of tests achieving at least{" "}
+            <span className="font-medium">{sliderValue}%</span> of plan speed
+          </div>
+
+          {/* Threshold Slider */}
+          <div className="w-full max-w-xs mb-4">
+            <div className="flex justify-between text-xs text-gray-500 mb-1">
+              <span>Threshold:</span>
+              <span className="font-medium">{sliderValue}% of plan</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={sliderValue}
+              onChange={handleSliderChange}
+              onMouseUp={handleSliderChangeComplete}
+              onTouchEnd={handleSliderChangeComplete}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              style={{
+                // Custom styling for the slider thumb
+                "--thumb-color": colors.jade,
+                "--track-color": colors.cloudGrey,
+              }}
+            />
+            <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <span>0%</span>
+              <span>50%</span>
+              <span>100%</span>
+            </div>
+          </div>
+
           <div className="flex flex-col items-center space-y-4">
             {/* Simple donut chart representation */}
             <div className="relative w-40 h-40">
@@ -73,7 +133,8 @@ const AssessmentQualityIndicators = ({ speedTestData, floorData, colors }) => {
                   style={{ backgroundColor: colors.jade }}
                 ></div>
                 <span>
-                  Above 80% of Plan: {formatPercent(speedTestData[0].value)}%
+                  Above {sliderValue}% of Plan:{" "}
+                  {formatPercent(speedTestData[0].value)}%
                 </span>
               </div>
               <div className="flex items-center">
@@ -82,14 +143,12 @@ const AssessmentQualityIndicators = ({ speedTestData, floorData, colors }) => {
                   style={{ backgroundColor: "#EF4444" }}
                 ></div>
                 <span>
-                  Below 80% of Plan: {formatPercent(speedTestData[1].value)}%
+                  Below {sliderValue}% of Plan:{" "}
+                  {formatPercent(speedTestData[1].value)}%
                 </span>
               </div>
             </div>
           </div>
-          <p className="text-xs text-center text-gray-500 mt-4">
-            Percentage of tests achieving at least 80% of plan speed
-          </p>
         </div>
 
         {/* Multi-Floor Assessment Rate */}

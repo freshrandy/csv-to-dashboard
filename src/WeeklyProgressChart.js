@@ -44,7 +44,7 @@ const WeeklyProgressChart = ({ weeklyData }) => {
     },
     installations: {
       color: Colors.jade,
-      label: "Access Points Installed",
+      label: "Mesh Nodes Installed",
     },
     uniqueHomes: {
       color: Colors.electricBlue,
