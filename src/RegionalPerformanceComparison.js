@@ -142,13 +142,13 @@ const RegionalPerformanceComparison = ({ regionalData, colors }) => {
                       className="px-2 py-1 text-xs rounded-full"
                       style={{
                         backgroundColor:
-                          region.conversion > 20
+                          region.conversion > 15
                             ? colors.jade
                             : colors.cloudGrey,
-                        color: region.conversion > 20 ? "white" : "black",
+                        color: region.conversion > 15 ? "white" : "black",
                       }}
                     >
-                      {region.conversion}%
+                      {region.conversion.toFixed(1)}%
                     </span>
                   </td>
                 </tr>

@@ -13,8 +13,8 @@ import Colors from "./Colors";
 const AssessmentQualityIndicators = ({ speedTestData, floorData, colors }) => {
   // Helper function to format percentages consistently
   const formatPercent = (value) => {
-    // Use toFixed(1) to limit to 1 decimal place
-    return value.toFixed(1);
+    // Use toFixed(1) to limit to 1 decimal place and ensure we're working with a number
+    return typeof value === "number" ? value.toFixed(1) : "0.0";
   };
 
   return (
