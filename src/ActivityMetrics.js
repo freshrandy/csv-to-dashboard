@@ -1,52 +1,65 @@
 import React from "react";
+import Colors from "./Colors";
+import MetricCard from "./MetricCard"; // Using our updated MetricCard component
 
 /**
  * Enhanced ActivityMetrics Component
- * Displays key activity metrics with improved visual design
- *
- * @param {Object} props
- * @param {Object} props.metrics - Object containing activity metrics data
- * @param {boolean} props.hasAddresses - Whether address data is available
- * @param {Object} props.colors - Brand color scheme for styling
+ * Displays key activity metrics with improved visual design using the updated color system
  */
-const ActivityMetrics = ({ metrics, hasAddresses, colors }) => {
+const ActivityMetrics = ({ metrics, hasAddresses }) => {
   // Determine terminology based on data
   const locationTerm = hasAddresses ? "Home" : "Assessment";
   const locationTermPlural = hasAddresses ? "Homes" : "Assessments";
 
   // Helper to render a progress bar
-  const renderProgressBar = (value, color, height = "h-2") => (
-    <div className={`${height} bg-gray-200 rounded-full overflow-hidden`}>
-      <div
-        className={`${height} rounded-full transition-all duration-500 ease-in-out`}
-        style={{
-          width: `${value}%`,
-          backgroundColor: color,
-        }}
-      ></div>
-    </div>
-  );
+  const renderProgressBar = (
+    value,
+    colorScheme = "primary",
+    height = "h-2"
+  ) => {
+    let barColor;
+    switch (colorScheme) {
+      case "primary":
+        barColor = Colors.primary[400];
+        break;
+      case "secondary":
+        barColor = Colors.secondary[500];
+        break;
+      case "success":
+        barColor = Colors.status.success;
+        break;
+      case "warning":
+        barColor = Colors.status.warning;
+        break;
+      case "error":
+        barColor = Colors.status.error;
+        break;
+      default:
+        barColor = Colors.primary[400];
+    }
 
-  // Calculate number of active employees (employees with at least 1 scan)
-  const activeEmployees = metrics.activeEmployees || 12; // Use actual data or fallback
-
-  // Calculate averages per employee
-  const avgScansPerEmployee = metrics.totalScans
-    ? (metrics.totalScans / activeEmployees).toFixed(1)
-    : 0;
-  const avgHomesPerEmployee = metrics.uniqueVisits
-    ? (metrics.uniqueVisits / activeEmployees).toFixed(1)
-    : 0;
+    return (
+      <div className={`${height} bg-gray-200 rounded-full overflow-hidden`}>
+        <div
+          className={`${height} rounded-full transition-all duration-500 ease-in-out`}
+          style={{
+            width: `${value}%`,
+            backgroundColor: barColor,
+          }}
+        ></div>
+      </div>
+    );
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
       {/* Header with background color */}
       <div
         className="px-5 py-4 border-b"
-        style={{ backgroundColor: colors.cloudGrey }}
+        style={{ backgroundColor: Colors.gray[100] }}
       >
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold" style={{ color: colors.ash }}>
+          <h2 className="text-xl font-bold" style={{ color: Colors.gray[700] }}>
             Activity Metrics
           </h2>
           <div className="text-sm text-gray-500 font-medium">
@@ -58,174 +71,86 @@ const ActivityMetrics = ({ metrics, hasAddresses, colors }) => {
       {/* Section titles and metrics */}
       <div className="p-5">
         {/* SECTION: Volume Metrics */}
-        <h3 className="text-lg font-medium mb-3" style={{ color: colors.ash }}>
+        <h3
+          className="text-lg font-medium mb-3"
+          style={{ color: Colors.gray[700] }}
+        >
           Volume Metrics
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {/* Unique Visits Card */}
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5">
-            <div className="flex justify-between items-start mb-3">
-              <p className="text-sm font-medium text-gray-600">
-                Unique {locationTermPlural}
-              </p>
-              <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
-                Total
-              </span>
-            </div>
-            <div className="flex items-end gap-2">
-              <div
-                className="text-4xl font-bold"
-                style={{ color: colors.teal }}
-              >
-                {metrics.uniqueVisits}
-              </div>
-              <div className="text-sm text-gray-500 mb-1">
-                {hasAddresses ? "unique addresses" : "distinct assessments"}
-              </div>
-            </div>
-          </div>
+          {/* Using our updated MetricCard component without icons and trends */}
+          <MetricCard
+            title={`Unique ${locationTermPlural}`}
+            value={metrics.uniqueVisits}
+            subtitle={
+              hasAddresses ? "unique addresses" : "distinct assessments"
+            }
+            colorScheme="primary"
+          />
 
-          {/* Total Scans Card */}
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5">
-            <div className="flex justify-between items-start mb-3">
-              <p className="text-sm font-medium text-gray-600">
-                Scans Completed
-              </p>
-              <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
-                All
-              </span>
-            </div>
-            <div className="flex items-end gap-2">
-              <div
-                className="text-4xl font-bold"
-                style={{ color: colors.electricBlue }}
-              >
-                {metrics.totalScans}
-              </div>
-              <div className="text-sm text-gray-500 mb-1">inc. incomplete</div>
-            </div>
-          </div>
+          <MetricCard
+            title="Scans Completed"
+            value={metrics.totalScans}
+            subtitle="inc. incomplete"
+            colorScheme="secondary"
+          />
         </div>
 
         {/* SECTION: Employee Metrics */}
-        <h3 className="text-lg font-medium mb-3" style={{ color: colors.ash }}>
+        <h3
+          className="text-lg font-medium mb-3"
+          style={{ color: Colors.gray[700] }}
+        >
           Employee Performance
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {/* Active Employees Card */}
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5">
-            <div className="flex justify-between items-start mb-3">
-              <p className="text-sm font-medium text-gray-600">
-                Active Personnel
-              </p>
-              <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
-                With Scans
-              </span>
-            </div>
-            <div className="flex items-end gap-2">
-              <div
-                className="text-4xl font-bold"
-                style={{ color: colors.teal }}
-              >
-                {activeEmployees}
-              </div>
-              <div className="text-sm text-gray-500 mb-1">employees</div>
-            </div>
-          </div>
+          <MetricCard
+            title="Active Personnel"
+            value={metrics.activeEmployees}
+            subtitle="employees"
+            colorScheme="primary"
+          />
 
-          {/* Average Scans Per Employee Card */}
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5">
-            <div className="flex justify-between items-start mb-3">
-              <p className="text-sm font-medium text-gray-600">
-                Avg. Scans / Employee
-              </p>
-              <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
-                Mean
-              </span>
-            </div>
-            <div className="flex items-end gap-2">
-              <div
-                className="text-4xl font-bold"
-                style={{ color: colors.electricBlue }}
-              >
-                {avgScansPerEmployee}
-              </div>
-              <div className="text-sm text-gray-500 mb-1">scans</div>
-            </div>
-          </div>
+          <MetricCard
+            title="Avg. Scans / Employee"
+            value={(metrics.totalScans / metrics.activeEmployees).toFixed(1)}
+            subtitle="scans"
+            colorScheme="secondary"
+          />
 
-          {/* Average Homes Per Employee Card */}
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5">
-            <div className="flex justify-between items-start mb-3">
-              <p className="text-sm font-medium text-gray-600">
-                Avg. {locationTermPlural} / Employee
-              </p>
-              <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
-                Mean
-              </span>
-            </div>
-            <div className="flex items-end gap-2">
-              <div
-                className="text-4xl font-bold"
-                style={{ color: colors.jade }}
-              >
-                {avgHomesPerEmployee}
-              </div>
-              <div className="text-sm text-gray-500 mb-1">
-                {locationTermPlural.toLowerCase()}
-              </div>
-            </div>
-          </div>
+          <MetricCard
+            title={`Avg. ${locationTermPlural} / Employee`}
+            value={(metrics.uniqueVisits / metrics.activeEmployees).toFixed(1)}
+            subtitle={locationTermPlural.toLowerCase()}
+            colorScheme="success"
+          />
 
-          {/* Avg Rooms Card */}
-          <div className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5">
-            <div className="flex justify-between items-start mb-3">
-              <p className="text-sm font-medium text-gray-600">
-                Avg. Rooms / {locationTerm}
-              </p>
-              <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">
-                Mean
-              </span>
-            </div>
-            <div className="flex items-end gap-2">
-              <div
-                className="text-4xl font-bold"
-                style={{ color: colors.jade }}
-              >
-                {metrics.avgRooms}
-              </div>
-              <div className="text-sm text-gray-500 mb-1">rooms tested</div>
-            </div>
-          </div>
+          <MetricCard
+            title={`Avg. Rooms / ${locationTerm}`}
+            value={metrics.avgRooms}
+            subtitle="rooms tested"
+            colorScheme="info"
+          />
         </div>
 
         {/* SECTION: Installation Metrics */}
-        <h3 className="text-lg font-medium mb-3" style={{ color: colors.ash }}>
+        <h3
+          className="text-lg font-medium mb-3"
+          style={{ color: Colors.gray[700] }}
+        >
           Installation Metrics
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Access Points Installation */}
           <div className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-sm font-medium text-gray-700 flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+              <span className="text-sm font-medium text-gray-700">
                 Access Points Installation
               </span>
               <div className="flex items-center">
                 <span
                   className="text-lg font-bold mr-1"
-                  style={{ color: colors.jade }}
+                  style={{ color: Colors.primary[400] }}
                 >
                   {metrics.accessPoints.percentage}%
                 </span>
@@ -237,7 +162,7 @@ const ActivityMetrics = ({ metrics, hasAddresses, colors }) => {
             </div>
             {renderProgressBar(
               metrics.accessPoints.percentage,
-              colors.jade,
+              "primary",
               "h-4"
             )}
             <div className="flex justify-between text-xs text-gray-500 mt-2">
@@ -251,21 +176,13 @@ const ActivityMetrics = ({ metrics, hasAddresses, colors }) => {
           {/* Conversion Rate */}
           <div className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-sm font-medium text-gray-700 flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                </svg>
+              <span className="text-sm font-medium text-gray-700">
                 {locationTerm} Conversion Rate
               </span>
               <div className="flex items-center">
                 <span
                   className="text-lg font-bold mr-1"
-                  style={{ color: colors.electricBlue }}
+                  style={{ color: Colors.secondary[500] }}
                 >
                   {metrics.conversionRate.value}%
                 </span>
@@ -277,7 +194,7 @@ const ActivityMetrics = ({ metrics, hasAddresses, colors }) => {
             </div>
             {renderProgressBar(
               metrics.conversionRate.value,
-              colors.electricBlue,
+              "secondary",
               "h-4"
             )}
             <div className="flex justify-between text-xs text-gray-500 mt-2">

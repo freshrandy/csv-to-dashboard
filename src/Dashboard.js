@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Colors from "./Colors";
 import WeeklyProgressChart from "./WeeklyProgressChart";
 import TechnicianQualityChart from "./TechnicianQualityChart";
 import EmployeePerformanceTable from "./EmployeePerformanceTable";
@@ -8,6 +9,7 @@ import AssessmentQualityIndicators from "./AssessmentQualityIndicators";
 import ActivityMetrics from "./ActivityMetrics";
 import FilterIndicator from "./FilterIndicator";
 import MetricsGlossary from "./MetricsGlossary";
+import DashboardHeader from "./DashboardHeader";
 
 const Dashboard = ({
   metrics,
@@ -40,17 +42,6 @@ const Dashboard = ({
   // Determine terminology based on data
   const locationTerm = hasAddresses ? "Home" : "Assessment";
   const locationTermPlural = hasAddresses ? "Homes" : "Assessments";
-
-  // Brand Colors
-  const colors = {
-    teal: "#58DBB9", // Primary
-    jade: "#4EBAA1", // Secondary
-    ash: "#3D4550", // Background dark
-    electricBlue: "#0066FF", // Accent
-    digitalYellow: "#D6FC51", // Accent
-    slate: "#20242A", // Background darker
-    cloudGrey: "#EEF2F6", // Background light
-  };
 
   // Calculate date range from the filtered data
   const calculateActualDateRange = () => {
@@ -609,12 +600,12 @@ const Dashboard = ({
     {
       name: "Above 80% of Plan",
       value: performanceMetrics.speedTestSuccessRate,
-      color: colors.jade,
+      color: Colors.primary[400], // Use our new color system
     },
     {
       name: "Below 80% of Plan",
       value: 100 - performanceMetrics.speedTestSuccessRate,
-      color: "#EF4444",
+      color: Colors.status.error, // Use our new color system
     },
   ];
 
@@ -623,96 +614,55 @@ const Dashboard = ({
     {
       name: "Multi-Floor Assessments",
       value: 35.0, // Placeholder - not directly available in our metrics
-      color: colors.electricBlue,
+      color: Colors.secondary[500], // Use our new color system
     },
-    { name: "Single-Floor Assessments", value: 65.0, color: colors.cloudGrey },
+    {
+      name: "Single-Floor Assessments",
+      value: 65.0,
+      color: Colors.gray[200], // Use our new color system
+    },
   ];
-
-  // Background gradient style
-  const gradientBg = {
-    background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.electricBlue} 100%)`,
-    opacity: 0.95,
-  };
 
   return (
     <div
       className="p-6 w-full bg-gray-50"
       style={{ fontFamily: "DM Sans, sans-serif" }}
     >
-      {/* Header with gradient background */}
-      <div className="rounded-lg shadow-lg mb-8" style={{ overflow: "hidden" }}>
-        <div className="p-6 text-white" style={gradientBg}>
-          <div className="flex justify-between items-center mb-2">
-            <h1 className="text-3xl font-bold">{clientName} Dashboard</h1>
-            <div className="flex space-x-3">
-              {/* Add Metrics Glossary button */}
-              <button
-                onClick={() => setShowMetricsGlossary(true)}
-                className="px-3 py-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm rounded-md transition-all flex items-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Metrics Glossary
-              </button>
-              <button
-                onClick={onChangeFilter}
-                className="px-3 py-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm rounded-md transition-all"
-              >
-                Change Filter
-              </button>
-            </div>
-          </div>
-          <p className="opacity-90">{dateRange}</p>
-        </div>
-      </div>
-
-      {/* Add Filter Indicator if we have an active filter that isn't 'all' */}
-      {activeFilterGroup && activeFilterGroup !== "all" && (
-        <FilterIndicator
-          activeFilter={activeFilterGroup}
-          filterGroups={filterGroups}
-          colors={colors}
-        />
-      )}
+      {/* Use our new DashboardHeader component */}
+      <DashboardHeader
+        clientName={clientName}
+        dateRange={dateRange}
+        activeFilterGroup={activeFilterGroup}
+        filterGroups={filterGroups}
+        onChangeFilter={onChangeFilter}
+        onOpenGlossary={() => setShowMetricsGlossary(true)}
+      />
 
       <div className="flex flex-col gap-6">
-        {/* Activity Metrics Section - Using the ActivityMetrics component */}
+        {/* ActivityMetrics component with enhanced styling */}
         <ActivityMetrics
           metrics={activityMetrics}
           hasAddresses={hasAddresses}
-          colors={colors}
         />
 
-        {/* Weekly Progress Chart */}
+        {/* Weekly Progress Chart - will gradually update this component */}
         <WeeklyProgressChart weeklyData={weeklyData} />
 
-        {/* Conversion Rate Chart */}
-        <ConversionRateChart weeklyData={weeklyData} colors={colors} />
+        {/* Conversion Rate Chart - now using Colors directly */}
+        <ConversionRateChart weeklyData={weeklyData} colors={Colors} />
 
-        {/* Regional Performance - Now using the componentized version */}
+        {/* Regional Performance - using Colors directly */}
         <RegionalPerformanceComparison
           regionalData={regionalData}
-          colors={colors}
+          colors={Colors}
         />
 
-        {/* Assessment Quality Indicators - */}
-        {/*<AssessmentQualityIndicators
+        {/* Assessment Quality Indicators - using Colors directly */}
+        <AssessmentQualityIndicators
           speedTestData={speedTestData}
           floorData={floorData}
-          colors={colors}
-        />*/}
+          colors={Colors}
+        />
       </div>
 
       {/* Employee Performance Table */}
@@ -734,24 +684,17 @@ const Dashboard = ({
         </div>
       )}
 
-      {/* Employee Quality Cohort Analysis */}
-      {/* 
-      {metrics.rawData && (
-        <div className="mt-8">
-          <EmployeeQualityCohortTable csvData={employeeTableData} />
-        </div>
-      )}
-      */}
-
-      {/* Footer with gradient */}
+      {/* Footer with gradient using our new color system */}
       <div
         className="mt-8 p-4 rounded-lg text-white text-center"
-        style={gradientBg}
+        style={{ background: Colors.gradients.primary }}
       >
         <div className="text-center">
           <span>Dashboard by {preparedBy}</span>
         </div>
       </div>
+
+      {/* Metrics Glossary Modal */}
       <MetricsGlossary
         isOpen={showMetricsGlossary}
         onClose={() => setShowMetricsGlossary(false)}
