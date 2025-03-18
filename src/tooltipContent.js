@@ -8,12 +8,12 @@ export const tooltipContent = {
   uniqueVisits: {
     title: "Unique Homes/Assessments",
     content:
-      "The total number of distinct assessments performed, based on unique address combinations. This metric helps you understand your total volume without double-counting scans or visits in the same location.",
+      "The total number of distinct assessments performed, based on unique address combinations. This metric helps you understand your total volume without double-counting certificates or visits in the same location.",
   },
   totalScans: {
-    title: "Total Scans",
+    title: "Total Certificates",
     content:
-      "The total number of assessments performed, including both complete and incomplete scans. This metric represents your overall activity volume.",
+      "The total number of assessments performed, including both complete and incomplete certificates. This metric represents your overall activity volume.",
   },
   activePersonnel: {
     title: "Active Personnel",
@@ -21,9 +21,9 @@ export const tooltipContent = {
       "The number of employees who have conducted at least one assessment in the selected time period. This metric helps track workforce activity and distribution.",
   },
   avgScansPerEmployee: {
-    title: "Avg. Scans / Employee",
+    title: "Avg. Certifications / Employee",
     content:
-      "The average number of assessments conducted per active employee. Calculated as Total Scans ÷ Number of active employees. This helps identify trends in employee productivity.",
+      "The average number of assessments conducted per active employee. Calculated as Total Certificates ÷ Number of active employees. This helps identify trends in employee productivity.",
   },
   avgHomesPerEmployee: {
     title: "Avg. Homes / Employee",

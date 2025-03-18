@@ -14,7 +14,8 @@
     "file-saver": "2.0.5",
     "recharts": "2.15.1",
     "tailwindcss": "4.0.12",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "react-transition-group": "^4.4.5"
   },
   "devDependencies": {
     "@types/react": "19.0.0",

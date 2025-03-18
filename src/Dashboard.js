@@ -1,5 +1,6 @@
-// React core import
-import React, { useState } from "react";
+// src/Dashboard.js
+import React, { useState, useEffect } from "react";
+import { CSSTransition } from "react-transition-group";
 
 // Utility and styling
 import Colors from "./Colors";
@@ -7,6 +8,7 @@ import Colors from "./Colors";
 // Dashboard header and UI controls
 import DashboardHeader from "./DashboardHeader";
 import MetricsGlossary from "./MetricsGlossary";
+import ConfigurationPanel from "./ConfigurationPanel";
 
 // Core metric components
 import ActivityMetrics from "./ActivityMetrics";
@@ -27,11 +29,165 @@ const Dashboard = ({
   filterGroups,
   onChangeFilter,
 }) => {
+  // Load configuration from localStorage or use default
+  const [dashboardConfig, setDashboardConfig] = useState(() => {
+    const savedConfig = localStorage.getItem("dashboard-config");
+    return savedConfig
+      ? JSON.parse(savedConfig)
+      : {
+          // Activity Metrics Section
+          activityMetrics: true,
+          uniqueVisits: true,
+          totalScans: true,
+          employeePerformance: true,
+
+          // Charts Section
+          weeklyProgress: true,
+          conversionRate: true,
+          regionalPerformance: true,
+          qualityIndicators: true,
+
+          // Employee Data Section
+          employeeTable: true,
+          qualityChart: true,
+        };
+  });
+
+  // State to control if config panel is visible
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
+
+  // Add state for saved configurations
+  const [savedConfigs, setSavedConfigs] = useState(() => {
+    const configs = localStorage.getItem("dashboard-saved-configs");
+    return configs ? JSON.parse(configs) : [];
+  });
+
+  // State for configuration name input
+  const [configName, setConfigName] = useState("");
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+
+  // State for metrics glossary modal
+  const [showMetricsGlossary, setShowMetricsGlossary] = useState(false);
+
   // Assessment Quality slider, move to somewhere more logical after.
   const [speedTestThreshold, setSpeedTestThreshold] = useState(80); // Default to 80%
 
-  // Add state for metrics glossary modal
-  const [showMetricsGlossary, setShowMetricsGlossary] = useState(false);
+  // Save configuration to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem("dashboard-config", JSON.stringify(dashboardConfig));
+  }, [dashboardConfig]);
+
+  // Toggle a single component
+  const toggleComponent = (componentId) => {
+    setDashboardConfig((prev) => ({
+      ...prev,
+      [componentId]: !prev[componentId],
+    }));
+  };
+
+  // Apply a preset configuration
+  const applyPreset = (presetName) => {
+    switch (presetName) {
+      case "showAll":
+        setDashboardConfig({
+          activityMetrics: true,
+          uniqueVisits: true,
+          totalScans: true,
+          employeePerformance: true,
+          weeklyProgress: true,
+          conversionRate: true,
+          regionalPerformance: true,
+          qualityIndicators: true,
+          employeeTable: true,
+          qualityChart: true,
+        });
+        break;
+      case "minimal":
+        setDashboardConfig({
+          activityMetrics: true,
+          uniqueVisits: true,
+          totalScans: true,
+          employeePerformance: false,
+          weeklyProgress: true,
+          conversionRate: true,
+          regionalPerformance: false,
+          qualityIndicators: false,
+          employeeTable: false,
+          qualityChart: false,
+        });
+        break;
+      case "conversionFocus":
+        setDashboardConfig({
+          activityMetrics: true,
+          uniqueVisits: true,
+          totalScans: true,
+          employeePerformance: false,
+          weeklyProgress: false,
+          conversionRate: true,
+          regionalPerformance: true,
+          qualityIndicators: true,
+          employeeTable: false,
+          qualityChart: false,
+        });
+        break;
+      case "employeeFocus":
+        setDashboardConfig({
+          activityMetrics: true,
+          uniqueVisits: false,
+          totalScans: false,
+          employeePerformance: true,
+          weeklyProgress: false,
+          conversionRate: false,
+          regionalPerformance: false,
+          qualityIndicators: false,
+          employeeTable: true,
+          qualityChart: true,
+        });
+        break;
+      default:
+        // Keep current config
+        break;
+    }
+  };
+
+  // Save current configuration
+  const saveCurrentConfiguration = () => {
+    if (!configName.trim()) return;
+
+    const newConfig = {
+      name: configName,
+      date: new Date().toLocaleDateString(),
+      config: dashboardConfig,
+    };
+
+    const updatedConfigs = [...savedConfigs, newConfig];
+    setSavedConfigs(updatedConfigs);
+    localStorage.setItem(
+      "dashboard-saved-configs",
+      JSON.stringify(updatedConfigs)
+    );
+
+    setConfigName("");
+    setShowSaveDialog(false);
+  };
+
+  // Load a saved configuration
+  const loadSavedConfiguration = (index) => {
+    const config = savedConfigs[index];
+    if (config && config.config) {
+      setDashboardConfig(config.config);
+    }
+  };
+
+  // Delete a saved configuration
+  const deleteSavedConfiguration = (index) => {
+    const updatedConfigs = savedConfigs.filter((_, i) => i !== index);
+    setSavedConfigs(updatedConfigs);
+    localStorage.setItem(
+      "dashboard-saved-configs",
+      JSON.stringify(updatedConfigs)
+    );
+  };
 
   // Exit early if no metrics
   if (!metrics) return null;
@@ -715,142 +871,192 @@ const Dashboard = ({
 
   return (
     <div
-      className="p-6 w-full bg-gray-50"
+      className="p-6 w-full bg-gray-50 flex"
       style={{ fontFamily: "DM Sans, sans-serif" }}
     >
-      {/* Use our new DashboardHeader component */}
-      <DashboardHeader
-        clientName={clientName}
-        dateRange={dateRange}
-        activeFilterGroup={activeFilterGroup}
-        filterGroups={filterGroups}
-        onChangeFilter={onChangeFilter}
-        onOpenGlossary={() => setShowMetricsGlossary(true)}
-        hasEmployeeData={hasEmployeeData()}
-      />
-
-      <div className="flex flex-col gap-6">
-        {/* ActivityMetrics component with enhanced styling */}
-        <ActivityMetrics
-          metrics={activityMetrics}
-          hasAddresses={hasAddresses}
+      {/* Main Content Area */}
+      <div
+        className={`flex-1 transition-all duration-300 ${
+          showConfigPanel ? "mr-64" : ""
+        }`}
+      >
+        {/* Use our DashboardHeader with the Toggle Config button */}
+        <DashboardHeader
+          clientName={clientName}
+          dateRange={dateRange}
+          activeFilterGroup={activeFilterGroup}
+          filterGroups={filterGroups}
+          onChangeFilter={onChangeFilter}
+          onOpenGlossary={() => setShowMetricsGlossary(true)}
+          onToggleConfig={() => setShowConfigPanel(!showConfigPanel)}
         />
 
-        {/* Weekly Progress Chart - will gradually update this component */}
-        <WeeklyProgressChart weeklyData={weeklyData} />
+        <div className="flex flex-col gap-6 transition-all duration-300">
+          {/* ActivityMetrics component - conditionally render based on config */}
+          <CSSTransition
+            in={dashboardConfig.activityMetrics}
+            timeout={300}
+            classNames="component"
+            unmountOnExit
+          >
+            <ActivityMetrics
+              metrics={activityMetrics}
+              hasAddresses={hasAddresses}
+            />
+          </CSSTransition>
 
-        {/* Conversion Rate Chart - now using Colors directly */}
-        <ConversionRateChart weeklyData={weeklyData} colors={Colors} />
+          {/* Weekly Progress Chart */}
+          <CSSTransition
+            in={dashboardConfig.weeklyProgress}
+            timeout={300}
+            classNames="chart"
+            unmountOnExit
+          >
+            <WeeklyProgressChart weeklyData={weeklyData} />
+          </CSSTransition>
 
-        {/* Regional Performance - using Colors directly */}
-        <RegionalPerformanceComparison
-          regionalData={regionalData}
-          colors={Colors}
-        />
+          {/* Conversion Rate Chart */}
+          <CSSTransition
+            in={dashboardConfig.conversionRate}
+            timeout={300}
+            classNames="chart"
+            unmountOnExit
+          >
+            <ConversionRateChart weeklyData={weeklyData} colors={Colors} />
+          </CSSTransition>
 
-        {/* Assessment Quality Indicators - using Colors directly */}
-        <AssessmentQualityIndicators
-          speedTestData={speedTestData}
-          floorData={floorData}
-          colors={Colors}
-          speedTestThreshold={speedTestThreshold}
-          onSpeedTestThresholdChange={(newThreshold) => {
-            setSpeedTestThreshold(newThreshold);
-            // Recalculate metrics with new threshold
-            // This will cause performanceMetrics and speedTestData to update
-          }}
-        />
+          {/* Regional Performance */}
+          <CSSTransition
+            in={dashboardConfig.regionalPerformance}
+            timeout={300}
+            classNames="chart"
+            unmountOnExit
+          >
+            <RegionalPerformanceComparison
+              regionalData={regionalData}
+              colors={Colors}
+            />
+          </CSSTransition>
+
+          {/* Assessment Quality Indicators */}
+          <CSSTransition
+            in={dashboardConfig.qualityIndicators}
+            timeout={300}
+            classNames="chart"
+            unmountOnExit
+          >
+            <AssessmentQualityIndicators
+              speedTestData={speedTestData}
+              floorData={floorData}
+              colors={Colors}
+              speedTestThreshold={speedTestThreshold}
+              onSpeedTestThresholdChange={(newThreshold) => {
+                setSpeedTestThreshold(newThreshold);
+              }}
+            />
+          </CSSTransition>
+        </div>
+
+        {/* Employee Performance Table */}
+        {hasEmployeeData() && dashboardConfig.employeeTable && (
+          <div className="mt-8">
+            <CSSTransition
+              in={dashboardConfig.employeeTable}
+              timeout={300}
+              classNames="component"
+              unmountOnExit
+            >
+              <EmployeePerformanceTable
+                data={employeeTableData}
+                dateRange={dateRange}
+              />
+            </CSSTransition>
+          </div>
+        )}
+
+        {/* Quality metrics */}
+        {metrics.qualityCohort &&
+          hasEmployeeData() &&
+          dashboardConfig.qualityChart && (
+            <div className="mt-8">
+              <CSSTransition
+                in={dashboardConfig.qualityChart}
+                timeout={300}
+                classNames="component"
+                unmountOnExit
+              >
+                <TechnicianQualityChart
+                  cohortData={metrics.qualityCohort}
+                  filteredData={employeeTableData}
+                  dateRange={dateRange}
+                />
+              </CSSTransition>
+            </div>
+          )}
+
+        {/* No components message when all are hidden */}
+        {!Object.values(dashboardConfig).some((value) => value) && (
+          <div className="bg-white p-8 rounded-lg shadow text-center my-8">
+            <svg
+              className="w-16 h-16 mx-auto mb-4 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No Components Selected
+            </h3>
+            <p className="text-gray-500 mb-4">
+              Please enable at least one component from the configuration panel
+              to visualize your data.
+            </p>
+            <button
+              onClick={() => applyPreset("showAll")}
+              className="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600"
+            >
+              Show All Components
+            </button>
+          </div>
+        )}
+
+        {/* Footer with gradient using our new color system */}
+        <div
+          className="mt-8 p-4 rounded-lg text-white text-center"
+          style={{ background: Colors.gradients.primary }}
+        >
+          <div className="text-center">
+            <span>Dashboard by {preparedBy}</span>
+          </div>
+        </div>
       </div>
 
-      {/* Employee Performance Table */}
-      {hasEmployeeData() ? (
-        <div className="mt-8">
-          <EmployeePerformanceTable
-            data={employeeTableData}
-            dateRange={dateRange}
-          />
-        </div>
-      ) : (
-        <div className="mt-8 p-6 bg-gray-50 rounded-lg shadow-md">
-          <div className="flex items-start">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 mr-3 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <div>
-              <h3 className="text-lg font-medium text-gray-700 mb-2">
-                Employee Performance Table Not Available
-              </h3>
-              <p className="text-sm text-gray-600">
-                Employee performance rankings could not be displayed because the
-                uploaded CSV file doesn't contain employee data. To view
-                employee performance metrics, please upload a CSV file that
-                includes an "Employee Email" column with valid employee emails.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Quality metrics */}
-      {metrics.qualityCohort && hasEmployeeData() ? (
-        <div className="mt-8">
-          <TechnicianQualityChart
-            cohortData={metrics.qualityCohort}
-            filteredData={employeeTableData}
-            dateRange={dateRange}
-          />
-        </div>
-      ) : metrics.qualityCohort ? (
-        <div className="mt-8 p-6 bg-gray-50 rounded-lg shadow-md">
-          <div className="flex items-start">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 mr-3 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <div>
-              <h3 className="text-lg font-medium text-gray-700 mb-2">
-                Employee Quality Data Not Available
-              </h3>
-              <p className="text-sm text-gray-600">
-                Employee quality metrics could not be displayed because the
-                uploaded CSV file doesn't contain employee data. To view
-                employee performance charts, please upload a CSV file that
-                includes an "Employee Email" column with valid employee emails.
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {/* Footer with gradient using our new color system */}
+      {/* Configuration Panel (Slide in from right) */}
       <div
-        className="mt-8 p-4 rounded-lg text-white text-center"
-        style={{ background: Colors.gradients.primary }}
+        className={`fixed top-0 right-0 h-full transform transition-transform duration-300 ease-in-out z-20 ${
+          showConfigPanel ? "translate-x-0" : "translate-x-full"
+        }`}
       >
-        <div className="text-center">
-          <span>Dashboard by {preparedBy}</span>
-        </div>
+        <ConfigurationPanel
+          config={dashboardConfig}
+          onToggleComponent={toggleComponent}
+          onApplyPreset={applyPreset}
+          onClose={() => setShowConfigPanel(false)}
+          savedConfigs={savedConfigs}
+          onSaveConfig={saveCurrentConfiguration}
+          onLoadConfig={loadSavedConfiguration}
+          onDeleteConfig={deleteSavedConfiguration}
+          configName={configName}
+          onConfigNameChange={setConfigName}
+          showSaveDialog={showSaveDialog}
+          onToggleSaveDialog={() => setShowSaveDialog(!showSaveDialog)}
+        />
       </div>
 
       {/* Metrics Glossary Modal */}

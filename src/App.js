@@ -16,6 +16,7 @@ import Loader from "./Loader";
 import Dashboard from "./Dashboard";
 import FilterGroupSelection from "./FilterGroupSelection";
 import { TooltipProvider } from "./TooltipContext";
+import "./animations.css";
 
 // Styled components
 const AppContainer = styled.div`

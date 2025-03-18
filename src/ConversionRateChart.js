@@ -134,7 +134,7 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
               onChange={(e) => setVolumeMetric(e.target.value)}
               className="p-1 text-xs border border-gray-300 rounded"
             >
-              <option value="completed">Scans</option>
+              <option value="completed">Certifications</option>
               <option value="installations">Mesh Nodes</option>
               <option value="uniqueHomes">Unique Homes</option>
             </select>
@@ -261,7 +261,7 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
                 dataKey={volumeMetric}
                 name={
                   volumeMetric === "completed"
-                    ? "Scans"
+                    ? "Certifications"
                     : volumeMetric === "installations"
                     ? "Mesh Nodes"
                     : "Unique Homes"
@@ -312,7 +312,7 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
               style={{ backgroundColor: colors.electricBlue }}
             ></div>
             <span>
-              Conversion Rate (percentage of scans resulting in installations)
+              Conversion Rate (percentage of certifications resulting in installations)
             </span>
           </div>
           <div className="flex items-center">
@@ -330,7 +330,7 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
             <span>
               Volume (
               {volumeMetric === "completed"
-                ? "Total Scans"
+                ? "Total Certifications"
                 : volumeMetric === "installations"
                 ? "Mesh Nodes Installed"
                 : "Unique Homes Assessed"}

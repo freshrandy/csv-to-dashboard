@@ -53,7 +53,7 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+    <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6 metric-card">
       {/* Header with background color */}
       <div
         className="px-5 py-4 border-b"
@@ -64,7 +64,7 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
             Activity Metrics
           </h2>
           <div className="text-sm text-gray-500 font-medium">
-            {metrics.totalScans} Total Scans
+            {metrics.totalScans} Total Certifications
           </div>
         </div>
       </div>
@@ -91,7 +91,7 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
           />
 
           <MetricCard
-            title="Scans Completed"
+            title="Total Certifications"
             value={metrics.totalScans}
             subtitle="inc. incomplete"
             colorScheme="secondary"
@@ -118,9 +118,9 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
           />
 
           <MetricCard
-            title="Avg. Scans / Employee"
+            title="Avg. Certifications / Employee"
             value={(metrics.totalScans / metrics.activeEmployees).toFixed(1)}
-            subtitle="scans"
+            subtitle="certifications"
             colorScheme="secondary"
             tooltipContent={tooltipContent.activePersonnel.content}
             tooltipTitle={tooltipContent.activePersonnel.title}
