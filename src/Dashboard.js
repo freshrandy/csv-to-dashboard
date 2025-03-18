@@ -27,6 +27,8 @@ const Dashboard = ({
   activeFilterGroup,
   filterGroups,
   onChangeFilter,
+  onDownloadJson,
+  onResetApp,
 }) => {
   // Load configuration from localStorage or use default
   const [dashboardConfig, setDashboardConfig] = useState(() => {
@@ -874,6 +876,8 @@ const Dashboard = ({
           onChangeFilter={onChangeFilter}
           onOpenGlossary={() => setShowMetricsGlossary(true)}
           onToggleConfig={() => setShowConfigPanel(!showConfigPanel)}
+          onDownloadJson={onDownloadJson}
+          onResetApp={onResetApp}
         />
 
         <div className="flex flex-col gap-6">

@@ -805,19 +805,14 @@ function App() {
       // Show the dashboard if metrics are generated
       return (
         <>
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-2xl font-bold">Dashboard Generated</h3>
-            <div className="flex gap-4">
-              <Button onClick={downloadJson}>Download JSON</Button>
-              <Button onClick={resetApp}>New Analysis</Button>
-            </div>
-          </div>
           <div id="dashboard-section" className="mt-8">
             <Dashboard
               metrics={metrics}
               activeFilterGroup={activeFilterGroup}
               filterGroups={filterGroups}
               onChangeFilter={handleChangeFilter}
+              onDownloadJson={downloadJson}
+              onResetApp={resetApp}
             />
           </div>
         </>
