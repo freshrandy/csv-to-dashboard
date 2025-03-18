@@ -1,6 +1,5 @@
 // src/Dashboard.js
 import React, { useState, useEffect } from "react";
-import { CSSTransition } from "react-transition-group";
 
 // Utility and styling
 import Colors from "./Colors";
@@ -35,19 +34,14 @@ const Dashboard = ({
     return savedConfig
       ? JSON.parse(savedConfig)
       : {
-          // Activity Metrics Section
           activityMetrics: true,
           uniqueVisits: true,
           totalScans: true,
           employeePerformance: true,
-
-          // Charts Section
           weeklyProgress: true,
           conversionRate: true,
           regionalPerformance: true,
           qualityIndicators: true,
-
-          // Employee Data Section
           employeeTable: true,
           qualityChart: true,
         };
@@ -69,8 +63,8 @@ const Dashboard = ({
   // State for metrics glossary modal
   const [showMetricsGlossary, setShowMetricsGlossary] = useState(false);
 
-  // Assessment Quality slider, move to somewhere more logical after.
-  const [speedTestThreshold, setSpeedTestThreshold] = useState(80); // Default to 80%
+  // Assessment Quality slider
+  const [speedTestThreshold, setSpeedTestThreshold] = useState(80);
 
   // Save configuration to localStorage when it changes
   useEffect(() => {
@@ -145,30 +139,23 @@ const Dashboard = ({
         });
         break;
       default:
-        // Keep current config
         break;
     }
   };
 
   // Save current configuration
-  const saveCurrentConfiguration = () => {
-    if (!configName.trim()) return;
-
+  const saveCurrentConfiguration = (configName) => {
     const newConfig = {
       name: configName,
       date: new Date().toLocaleDateString(),
       config: dashboardConfig,
     };
 
-    const updatedConfigs = [...savedConfigs, newConfig];
-    setSavedConfigs(updatedConfigs);
-    localStorage.setItem(
-      "dashboard-saved-configs",
-      JSON.stringify(updatedConfigs)
-    );
-
-    setConfigName("");
-    setShowSaveDialog(false);
+    setSavedConfigs((prev) => {
+      const updated = [...prev, newConfig];
+      localStorage.setItem("dashboard-saved-configs", JSON.stringify(updated));
+      return updated;
+    });
   };
 
   // Load a saved configuration
@@ -181,12 +168,11 @@ const Dashboard = ({
 
   // Delete a saved configuration
   const deleteSavedConfiguration = (index) => {
-    const updatedConfigs = savedConfigs.filter((_, i) => i !== index);
-    setSavedConfigs(updatedConfigs);
-    localStorage.setItem(
-      "dashboard-saved-configs",
-      JSON.stringify(updatedConfigs)
-    );
+    setSavedConfigs((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+      localStorage.setItem("dashboard-saved-configs", JSON.stringify(updated));
+      return updated;
+    });
   };
 
   // Exit early if no metrics
@@ -206,7 +192,6 @@ const Dashboard = ({
       : [];
 
   // Function to check if the data has employee information
-  // Moved out of calculateInstallationMetrics to make it accessible
   const hasEmployeeData = () => {
     if (!metrics || !metrics.rawData || metrics.rawData.length === 0) {
       return false;
@@ -880,7 +865,7 @@ const Dashboard = ({
           showConfigPanel ? "mr-64" : ""
         }`}
       >
-        {/* Use our DashboardHeader with the Toggle Config button */}
+        {/* DashboardHeader */}
         <DashboardHeader
           clientName={clientName}
           dateRange={dateRange}
@@ -891,60 +876,35 @@ const Dashboard = ({
           onToggleConfig={() => setShowConfigPanel(!showConfigPanel)}
         />
 
-        <div className="flex flex-col gap-6 transition-all duration-300">
-          {/* ActivityMetrics component - conditionally render based on config */}
-          <CSSTransition
-            in={dashboardConfig.activityMetrics}
-            timeout={300}
-            classNames="component"
-            unmountOnExit
-          >
+        <div className="flex flex-col gap-6">
+          {/* Activity Metrics */}
+          {dashboardConfig.activityMetrics && (
             <ActivityMetrics
               metrics={activityMetrics}
               hasAddresses={hasAddresses}
             />
-          </CSSTransition>
+          )}
 
           {/* Weekly Progress Chart */}
-          <CSSTransition
-            in={dashboardConfig.weeklyProgress}
-            timeout={300}
-            classNames="chart"
-            unmountOnExit
-          >
+          {dashboardConfig.weeklyProgress && (
             <WeeklyProgressChart weeklyData={weeklyData} />
-          </CSSTransition>
+          )}
 
           {/* Conversion Rate Chart */}
-          <CSSTransition
-            in={dashboardConfig.conversionRate}
-            timeout={300}
-            classNames="chart"
-            unmountOnExit
-          >
+          {dashboardConfig.conversionRate && (
             <ConversionRateChart weeklyData={weeklyData} colors={Colors} />
-          </CSSTransition>
+          )}
 
           {/* Regional Performance */}
-          <CSSTransition
-            in={dashboardConfig.regionalPerformance}
-            timeout={300}
-            classNames="chart"
-            unmountOnExit
-          >
+          {dashboardConfig.regionalPerformance && (
             <RegionalPerformanceComparison
               regionalData={regionalData}
               colors={Colors}
             />
-          </CSSTransition>
+          )}
 
           {/* Assessment Quality Indicators */}
-          <CSSTransition
-            in={dashboardConfig.qualityIndicators}
-            timeout={300}
-            classNames="chart"
-            unmountOnExit
-          >
+          {dashboardConfig.qualityIndicators && (
             <AssessmentQualityIndicators
               speedTestData={speedTestData}
               floorData={floorData}
@@ -954,23 +914,16 @@ const Dashboard = ({
                 setSpeedTestThreshold(newThreshold);
               }}
             />
-          </CSSTransition>
+          )}
         </div>
 
         {/* Employee Performance Table */}
         {hasEmployeeData() && dashboardConfig.employeeTable && (
           <div className="mt-8">
-            <CSSTransition
-              in={dashboardConfig.employeeTable}
-              timeout={300}
-              classNames="component"
-              unmountOnExit
-            >
-              <EmployeePerformanceTable
-                data={employeeTableData}
-                dateRange={dateRange}
-              />
-            </CSSTransition>
+            <EmployeePerformanceTable
+              data={employeeTableData}
+              dateRange={dateRange}
+            />
           </div>
         )}
 
@@ -979,18 +932,11 @@ const Dashboard = ({
           hasEmployeeData() &&
           dashboardConfig.qualityChart && (
             <div className="mt-8">
-              <CSSTransition
-                in={dashboardConfig.qualityChart}
-                timeout={300}
-                classNames="component"
-                unmountOnExit
-              >
-                <TechnicianQualityChart
-                  cohortData={metrics.qualityCohort}
-                  filteredData={employeeTableData}
-                  dateRange={dateRange}
-                />
-              </CSSTransition>
+              <TechnicianQualityChart
+                cohortData={metrics.qualityCohort}
+                filteredData={employeeTableData}
+                dateRange={dateRange}
+              />
             </div>
           )}
 
@@ -1026,7 +972,7 @@ const Dashboard = ({
           </div>
         )}
 
-        {/* Footer with gradient using our new color system */}
+        {/* Footer with gradient */}
         <div
           className="mt-8 p-4 rounded-lg text-white text-center"
           style={{ background: Colors.gradients.primary }}
@@ -1037,7 +983,7 @@ const Dashboard = ({
         </div>
       </div>
 
-      {/* Configuration Panel (Slide in from right) */}
+      {/* Configuration Panel */}
       <div
         className={`fixed top-0 right-0 h-full transform transition-transform duration-300 ease-in-out z-20 ${
           showConfigPanel ? "translate-x-0" : "translate-x-full"
