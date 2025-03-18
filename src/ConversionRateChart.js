@@ -58,7 +58,7 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
               style={{ backgroundColor: colors.teal }}
             ></div>
             <p className="text-gray-700">
-              Scans: <span className="font-medium">{data.completed}</span>
+              Mesh Nodes: <span className="font-medium">{data.completed}</span>
             </p>
           </div>
 
@@ -312,7 +312,8 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
               style={{ backgroundColor: colors.electricBlue }}
             ></div>
             <span>
-              Conversion Rate (percentage of certifications resulting in installations)
+              Conversion Rate (percentage of certifications resulting in
+              installations)
             </span>
           </div>
           <div className="flex items-center">

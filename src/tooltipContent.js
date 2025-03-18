@@ -62,7 +62,7 @@ export const tooltipContent = {
   conversionRate: {
     title: "Home/Assessment Conversion Rate",
     content:
-      "The percentage of assessed locations that resulted in at least one installation. Calculated as (Number of unique addresses with installations ÷ Total number of unique addresses assessed) × 100. A higher rate indicates more successful conversions from assessment to installation.",
+      "The percentage of assessed locations that resulted in at least one mesh node installation. Calculated as (Number of unique addresses with at least one mesh node installations ÷ Total number of unique addresses assessed) × 100. A higher rate indicates more successful conversions from assessment to installation.",
   },
   regionalConversion: {
     title: "Regional Conversion Rates",
