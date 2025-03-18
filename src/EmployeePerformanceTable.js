@@ -5,7 +5,7 @@ import Colors from "./Colors";
 const EmployeePerformanceTable = ({ data: csvData, dateRange }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [displayData, setDisplayData] = useState([]); // For pagination
+  const [displayData, setDisplayData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortConfig, setSortConfig] = useState({
@@ -387,10 +387,6 @@ const EmployeePerformanceTable = ({ data: csvData, dateRange }) => {
           <div>
             <span className="text-sm text-gray-500">Total Employees</span>
             <div className="font-medium">{data.length} Employees</div>
-          </div>
-          <div>
-            <span className="text-sm text-gray-500">Data Range</span>
-            <div className="font-medium">{dateRange || "All data"}</div>
           </div>
         </div>
 

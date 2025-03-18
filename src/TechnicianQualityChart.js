@@ -14,6 +14,10 @@ import {
 const TechnicianQualityChart = ({ cohortData }) => {
   const { weeklyData, employeeMetrics, teamStats } = cohortData;
 
+  // State for target score toggle and value
+  const [showTargetLine, setShowTargetLine] = useState(false);
+  const [targetScore, setTargetScore] = useState(0.75); // Default to 75%
+
   // Dynamically filter weekly data based on the maximum date from actual data
   const filterWeeklyData = (data) => {
     if (!data || !Array.isArray(data) || data.length === 0) return [];
@@ -204,7 +208,7 @@ const TechnicianQualityChart = ({ cohortData }) => {
                       {(entry.value * 100).toFixed(0)}%
                       {count > 0 && (
                         <span className="text-gray-500 text-xs ml-1">
-                          ({count} installs)
+                          ({count} scans)
                         </span>
                       )}
                     </>
@@ -237,6 +241,12 @@ const TechnicianQualityChart = ({ cohortData }) => {
     }
   };
 
+  // Handle target score changes
+  const handleTargetScoreChange = (e) => {
+    const value = parseFloat(e.target.value) / 100;
+    setTargetScore(Math.min(1, Math.max(0, value)));
+  };
+
   return (
     <div className="p-4 bg-white rounded-lg shadow">
       <h2 className="text-xl font-bold mb-4">
@@ -247,22 +257,37 @@ const TechnicianQualityChart = ({ cohortData }) => {
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex flex-col md:flex-row justify-between mb-4">
             <div className="mb-4 md:mb-0">
-              <span className="text-sm text-gray-500">Time Period</span>
-              <div className="font-medium">{teamStats.dateRange}</div>
-            </div>
-            <div className="mb-4 md:mb-0">
               <span className="text-sm text-gray-500">Team Average</span>
               <div className="font-medium">
                 {(teamStats.avgQualityScore * 100).toFixed(0)}%
               </div>
             </div>
+
+            {/* Target Score Controls */}
             <div className="mb-4 md:mb-0">
               <span className="text-sm text-gray-500">Target Score</span>
-              <div className="font-medium">75%</div>
-            </div>
-            <div>
-              <span className="text-sm text-gray-500">Total Scans</span>
-              <div className="font-medium">{teamStats.totalInstallations}</div>
+              <div className="flex items-center mt-1">
+                <button
+                  onClick={() => setShowTargetLine(!showTargetLine)}
+                  className={`px-2 py-1 text-xs rounded-md mr-2 ${
+                    showTargetLine
+                      ? "bg-blue-100 text-blue-800 border border-blue-200"
+                      : "bg-gray-100 text-gray-500 border border-gray-200"
+                  }`}
+                >
+                  {showTargetLine ? "On" : "Off"}
+                </button>
+                <input
+                  type="number"
+                  value={(targetScore * 100).toFixed(0)}
+                  onChange={handleTargetScoreChange}
+                  disabled={!showTargetLine}
+                  className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                  min="0"
+                  max="100"
+                />
+                <span className="ml-1 text-sm text-gray-500">%</span>
+              </div>
             </div>
           </div>
 
@@ -362,19 +387,21 @@ const TechnicianQualityChart = ({ cohortData }) => {
 
             <Tooltip content={<CustomTooltip />} />
 
-            {/* Target quality score reference line */}
-            <ReferenceLine
-              yAxisId="left"
-              y={0.75}
-              stroke={colors.targetScore}
-              strokeDasharray="3 3"
-              label={{
-                value: "Target (75%)",
-                position: "insideBottomRight",
-                fill: colors.targetScore,
-                fontSize: 12,
-              }}
-            />
+            {/* Custom Target quality score reference line (only when toggled on) */}
+            {showTargetLine && (
+              <ReferenceLine
+                yAxisId="left"
+                y={targetScore}
+                stroke={colors.targetScore}
+                strokeDasharray="3 3"
+                label={{
+                  value: `Target (${(targetScore * 100).toFixed(0)}%)`,
+                  position: "insideBottomRight",
+                  fill: colors.targetScore,
+                  fontSize: 12,
+                }}
+              />
+            )}
 
             {/* Team average line */}
             <Line
