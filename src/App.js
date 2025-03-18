@@ -1,16 +1,21 @@
+// React core imports
 import React, { useState, useRef, useEffect } from "react";
+
+// Third-party library imports
 import { useDropzone } from "react-dropzone";
 import Papa from "papaparse";
 import styled from "styled-components";
 import { saveAs } from "file-saver";
+
+// Custom utility functions
 import { generateMetrics } from "./metrics";
+import { generateQualityMetricsCohort } from "./cohortAnalysis"; //this needs to be refactored. Noodle-like.
+
+// UI components
 import Loader from "./Loader";
 import Dashboard from "./Dashboard";
-import { generateQualityMetricsCohort } from "./cohortAnalysis";
-import EmployeePerformanceTable from "./EmployeePerformanceTable";
-import EmployeeQualityCohortTable from "./EmployeeQualityCohortTable";
 import FilterGroupSelection from "./FilterGroupSelection";
-import { TooltipProvider } from "./TooltipContext"; // Import the TooltipProvider
+import { TooltipProvider } from "./TooltipContext";
 
 // Styled components
 const AppContainer = styled.div`

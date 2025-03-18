@@ -1,15 +1,25 @@
+// React core import
 import React, { useState } from "react";
+
+// Utility and styling
 import Colors from "./Colors";
+
+// Dashboard header and UI controls
+import DashboardHeader from "./DashboardHeader";
+import MetricsGlossary from "./MetricsGlossary";
+
+// Core metric components
+import ActivityMetrics from "./ActivityMetrics";
+import AssessmentQualityIndicators from "./AssessmentQualityIndicators";
+
+// Chart components
 import WeeklyProgressChart from "./WeeklyProgressChart";
-import TechnicianQualityChart from "./TechnicianQualityChart";
-import EmployeePerformanceTable from "./EmployeePerformanceTable";
 import ConversionRateChart from "./ConversionRateChart";
 import RegionalPerformanceComparison from "./RegionalPerformanceComparison";
-import AssessmentQualityIndicators from "./AssessmentQualityIndicators";
-import ActivityMetrics from "./ActivityMetrics";
-import FilterIndicator from "./FilterIndicator";
-import MetricsGlossary from "./MetricsGlossary";
-import DashboardHeader from "./DashboardHeader";
+
+// Employee-specific components
+import TechnicianQualityChart from "./TechnicianQualityChart";
+import EmployeePerformanceTable from "./EmployeePerformanceTable";
 
 const Dashboard = ({
   metrics,
