@@ -1,4 +1,3 @@
-// src/Dashboard.js
 import React, { useState, useEffect } from "react";
 
 // Utility and styling
@@ -21,6 +20,115 @@ import RegionalPerformanceComparison from "./RegionalPerformanceComparison";
 // Employee-specific components
 import TechnicianQualityChart from "./TechnicianQualityChart";
 import EmployeePerformanceTable from "./EmployeePerformanceTable";
+
+/**
+ * Gets the ISO week number for a date
+ * Follows the ISO 8601 standard where weeks start on Monday and the first week
+ * of the year contains the first Thursday of that year
+ * @param {Date} date - JavaScript Date object
+ * @returns {number} ISO week number (1-53)
+ */
+function getISOWeek(date) {
+  // Create a copy of the date to avoid modifying the original
+  const d = new Date(date.getTime());
+
+  // Set to nearest Thursday: current date + 4 - current day number
+  // Make Sunday's day number 7
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+
+  // Get first day of year
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+
+  // Calculate full weeks to nearest Thursday
+  const weekNum = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+
+  return weekNum;
+}
+
+/**
+ * Gets the ISO year for a date - the year that "owns" the week
+ * This may be different from the date's year for dates in early January
+ * or late December
+ * @param {Date} date - JavaScript Date object
+ * @returns {number} ISO year
+ */
+function getISOYear(date) {
+  // Create a copy of the date to avoid modifying the original
+  const d = new Date(date.getTime());
+
+  // Get the day and month
+  const month = d.getMonth();
+  const day = d.getDate();
+
+  // If it's the beginning of January, check if it belongs to the previous year's last week
+  if (month === 0 && day < 4) {
+    // If the Thursday of this week is in the previous year, use that year
+    const thuOffset = 4 - (d.getDay() || 7); // Days until Thursday
+    const thu = new Date(d.getTime());
+    thu.setDate(day + thuOffset);
+    return thu.getFullYear();
+  }
+
+  // If it's the end of December, check if it belongs to next year's first week
+  if (month === 11 && day >= 29) {
+    // If the Thursday of this week is in the next year, use that year
+    const thuOffset = 4 - (d.getDay() || 7); // Days until Thursday
+    const thu = new Date(d.getTime());
+    thu.setDate(day + thuOffset);
+    return thu.getFullYear();
+  }
+
+  // For all other cases, use the calendar year
+  return d.getFullYear();
+}
+
+/**
+ * Gets the ISO week key in YYYY-Www format (e.g., "2025-W01")
+ * @param {Date} date - JavaScript Date object
+ * @returns {string} Week key
+ */
+function getISOWeekKey(date) {
+  const year = getISOYear(date);
+  const week = getISOWeek(date);
+  return `${year}-W${week.toString().padStart(2, "0")}`;
+}
+
+/**
+ * Format week range for display (e.g., "Jan 1 - Jan 7")
+ * @param {string} weekKey - ISO week key in format "YYYY-Www"
+ * @returns {string} Formatted date range
+ */
+function formatWeekRange(weekKey) {
+  // Parse year and week from the key (e.g., "2025-W01")
+  const [year, weekCode] = weekKey.split("-");
+  const weekNum = parseInt(weekCode.substring(1));
+
+  // Calculate the date of the first day of the week (Monday)
+  // Create a date for Jan 4 of the year (which is always in week 1)
+  const jan4 = new Date(parseInt(year), 0, 4);
+
+  // Get to the Monday of week 1
+  const firstMonday = new Date(jan4);
+  firstMonday.setDate(jan4.getDate() - (jan4.getDay() || 7) + 1);
+
+  // Calculate first day of the requested week
+  const firstDay = new Date(firstMonday);
+  firstDay.setDate(firstMonday.getDate() + (weekNum - 1) * 7);
+
+  // Calculate last day of the week (Sunday)
+  const lastDay = new Date(firstDay);
+  lastDay.setDate(firstDay.getDate() + 6);
+
+  // Format the dates
+  const formatDate = (date) => {
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  return `${formatDate(firstDay)} - ${formatDate(lastDay)}`;
+}
 
 const Dashboard = ({
   metrics,
@@ -553,111 +661,14 @@ const Dashboard = ({
     activeEmployees: activeEmployeesCount, // Use actual count from filtered data
   };
 
-  /**
-   * Improved utility function to format week range for display
-   * Updated to handle all possible week keys
-   */
-  function formatWeekLabel(weekKey) {
-    try {
-      // Parse year and week from the key (e.g., "2025-W01")
-      const [year, weekCode] = weekKey.split("-");
-      if (!year || !weekCode) {
-        return weekKey; // Return original if can't parse
-      }
-
-      const weekNum = parseInt(weekCode.substring(1));
-      if (isNaN(weekNum)) {
-        return weekKey; // Return original if week is not a number
-      }
-
-      // Create a date object for Jan 1 of the year
-      const janFirst = new Date(parseInt(year), 0, 1);
-
-      // Calculate first day of the week (Monday)
-      // Get to the first Monday of the year
-      const firstMonday = new Date(
-        parseInt(year),
-        0,
-        1 + ((8 - janFirst.getDay()) % 7)
-      );
-
-      // Calculate first day of the requested week
-      const firstDayOfWeek = new Date(firstMonday);
-      firstDayOfWeek.setDate(firstMonday.getDate() + (weekNum - 1) * 7);
-
-      // Calculate last day of the week (Sunday)
-      const lastDayOfWeek = new Date(firstDayOfWeek);
-      lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
-
-      // Format the dates
-      const formatDate = (date) => {
-        return date.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        });
-      };
-
-      return `${formatDate(firstDayOfWeek)} - ${formatDate(lastDayOfWeek)}`;
-    } catch (error) {
-      console.warn(`Error formatting week label for ${weekKey}:`, error);
-      return weekKey; // Return original on error
-    }
-  }
-
-  /**
-   * Helper function to get ISO week number from a date
-   */
-  function getWeekNumber(d) {
-    const date = new Date(d);
-    date.setHours(0, 0, 0, 0);
-    // Thursday in current week decides the year
-    date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
-    // January 4 is always in week 1
-    const week1 = new Date(date.getFullYear(), 0, 4);
-    // Adjust to Thursday in week 1 and count number of weeks from date to week1
-    return (
-      1 +
-      Math.round(
-        ((date.getTime() - week1.getTime()) / 86400000 -
-          3 +
-          ((week1.getDay() + 6) % 7)) /
-          7
-      )
-    );
-  }
-
-  /**
-   * Gets the ISO week and year for a date
-   */
-  function getWeekYear(date) {
-    // Create a new date object for the Thursday in this week
-    // (weeks are defined by ISO as having Thursday as the 4th day)
-    const thursdayDate = new Date(date);
-    thursdayDate.setDate(date.getDate() + (4 - (date.getDay() || 7)));
-
-    // Get the year for that Thursday
-    const year = thursdayDate.getFullYear();
-
-    // Get the week number
-    const firstThursday = new Date(year, 0, 4); // First Thursday of the year
-    const weekNum =
-      1 +
-      Math.round(
-        ((thursdayDate - firstThursday) / 86400000 -
-          ((thursdayDate.getDay() + 6) % 7) / 7 +
-          ((firstThursday.getDay() + 6) % 7) / 7) /
-          7
-      );
-
-    return { year, week: weekNum };
-  }
-
-  // Weekly Data with fixed implementation to include all dates
+  // Weekly Data with fixed implementation using improved ISO week calculation
   const weeklyData = (() => {
+    console.log("Generating weekly data with improved ISO week calculations");
+
     // Initialize distribution structure
     const weeklyDistribution = {};
 
-    // Build distribution from filtered data
+    // Build distribution from filtered data with improved ISO week calculation
     employeeTableData.forEach((row) => {
       const dateStr = row["Date "] || row.Date;
       if (!dateStr) return;
@@ -666,35 +677,27 @@ const Dashboard = ({
         const entryDate = new Date(dateStr);
         if (isNaN(entryDate)) return;
 
-        // Get week key
-        const weekInfo = getWeekYear(entryDate);
-        const weekKey = `${weekInfo.year}-W${weekInfo.week
-          .toString()
-          .padStart(2, "0")}`;
+        // Get week key using the improved ISO function
+        const weekKey = getISOWeekKey(entryDate);
 
         // Add to distribution
         weeklyDistribution[weekKey] = (weeklyDistribution[weekKey] || 0) + 1;
       } catch (e) {
-        // Skip invalid dates
+        console.warn("Error processing date:", dateStr, e);
       }
     });
 
     // If we don't have weekly data, return an empty array
     if (Object.keys(weeklyDistribution).length === 0) {
+      console.warn("No weekly data found");
       return [];
     }
-
-    // Process the real weekly data
-    const processedData = [];
-
-    // Use the raw data that's already available in metrics
-    const rawData = employeeTableData || [];
 
     // Find actual min and max dates in the filtered raw data
     let minDate = new Date("2099-12-31");
     let maxDate = new Date("1970-01-01");
 
-    rawData.forEach((entry) => {
+    employeeTableData.forEach((entry) => {
       const dateStr = entry["Date "] || entry.Date;
       if (dateStr) {
         try {
@@ -715,114 +718,135 @@ const Dashboard = ({
       return [];
     }
 
-    // Get the ISO week and year for min and max dates
-    const startWeekInfo = getWeekYear(minDate);
-    const endWeekInfo = getWeekYear(maxDate);
-
-    // Generate all week keys between start and end
-    const allWeekKeys = [];
-    let currentYear = startWeekInfo.year;
-    let currentWeek = startWeekInfo.week;
-
-    while (
-      currentYear < endWeekInfo.year ||
-      (currentYear === endWeekInfo.year && currentWeek <= endWeekInfo.week)
-    ) {
-      allWeekKeys.push(
-        `${currentYear}-W${currentWeek.toString().padStart(2, "0")}`
-      );
-
-      // Move to next week
-      currentWeek++;
-      if (currentWeek > 52) {
-        currentWeek = 1;
-        currentYear++;
-      }
-    }
-
-    // Sort the week keys to ensure chronological order
-    const sortedWeeks = [
-      ...new Set([...Object.keys(weeklyDistribution), ...allWeekKeys]),
-    ].sort();
+    console.log(
+      `Actual date range: ${minDate.toISOString()} to ${maxDate.toISOString()}`
+    );
 
     // Process each week
-    sortedWeeks.forEach((weekKey) => {
-      // Get the week label
-      const weekLabel = formatWeekLabel(weekKey);
+    const processedData = [];
 
-      // Get the number of scans for this week from the distribution, or default to 0
-      const scans = weeklyDistribution[weekKey] || 0;
+    // Get the min and max week keys to limit our processing range
+    const minWeekKey = getISOWeekKey(minDate);
+    const maxWeekKey = getISOWeekKey(maxDate);
 
-      // For installations and unique homes, use real data
-      let installations = 0;
+    console.log(`Week range: ${minWeekKey} to ${maxWeekKey}`);
+    console.log(`Active weeks: ${Object.keys(weeklyDistribution).join(", ")}`);
+
+    // Only process weeks where we have data
+    Object.keys(weeklyDistribution).forEach((weekKey) => {
+      // Skip if week key is outside our range
+      if (weekKey < minWeekKey || weekKey > maxWeekKey) {
+        console.warn(`Skipping out-of-range week: ${weekKey}`);
+        return;
+      }
+
+      // Get the week label using our improved formatter
+      const weekLabel = formatWeekRange(weekKey);
+
+      // Get entries for this week using our consistent ISO function
+      const weekData = employeeTableData.filter((entry) => {
+        if (!entry["Date "] && !entry.Date) return false;
+
+        try {
+          const entryDate = new Date(entry["Date "] || entry.Date);
+          if (isNaN(entryDate)) return false; // Skip invalid dates
+
+          const entryWeekKey = getISOWeekKey(entryDate);
+          return entryWeekKey === weekKey;
+        } catch (e) {
+          return false; // Skip entries with date parsing issues
+        }
+      });
+
+      // Skip if no data for this week
+      if (weekData.length === 0) {
+        console.warn(`No data for week ${weekKey} after filtering`);
+        return;
+      }
+
+      // Calculate metrics
+      const scans = weekData.length;
+
+      // Count actual installations (mesh nodes > 0)
+      const installations = weekData.reduce((total, entry) => {
+        return total + (parseInt(entry["Mesh Nodes Installed"]) || 0);
+      }, 0);
+
+      // Calculate unique homes
       let uniqueHomes = 0;
 
-      // Process raw data for this week directly
-      if (rawData && rawData.length > 0) {
-        // Get entries for this week from the raw data
-        const weekData = rawData.filter((entry) => {
-          if (!entry["Date "] && !entry.Date) return false;
-
-          try {
-            const entryDate = new Date(entry["Date "] || entry.Date);
-            if (isNaN(entryDate)) return false; // Skip invalid dates
-
-            const entryWeekInfo = getWeekYear(entryDate);
-            const entryWeekKey = `${entryWeekInfo.year}-W${entryWeekInfo.week
-              .toString()
-              .padStart(2, "0")}`;
-
-            return entryWeekKey === weekKey;
-          } catch (e) {
-            return false; // Skip entries with date parsing issues
+      if (hasAddresses) {
+        const uniqueAddresses = new Set();
+        weekData.forEach((entry) => {
+          if (entry.Address) {
+            const addressKey = `${entry.Address}, ${entry.City || ""}, ${
+              entry["State/Province"] || ""
+            }`;
+            uniqueAddresses.add(addressKey);
           }
         });
-
-        // Count actual installations (mesh nodes > 0)
-        installations = weekData.reduce((total, entry) => {
-          return total + (entry["Mesh Nodes Installed"] || 0);
-        }, 0);
-
-        // Count unique addresses for this week if we have address data
-        if (hasAddresses) {
-          const uniqueAddresses = new Set();
-          weekData.forEach((entry) => {
-            if (entry.Address) {
-              const addressKey = `${entry.Address}, ${entry.City || ""}, ${
-                entry["State/Province"] || ""
-              }`;
-              uniqueAddresses.add(addressKey);
-            }
-          });
-          uniqueHomes = uniqueAddresses.size;
-        } else {
-          // If no address data, estimate based on scans
-          uniqueHomes = Math.round(scans * 0.8);
-        }
+        uniqueHomes = uniqueAddresses.size;
       } else {
-        // Fallback calculation if raw data isn't available
-        const avgConversionRate = installationMetrics.homeConversionRate / 100;
-        installations = Math.round(scans * avgConversionRate);
+        // If no address data, estimate based on scans
         uniqueHomes = Math.round(scans * 0.8);
       }
 
       // Calculate conversion rate
       const conversion = scans > 0 ? (installations / scans) * 100 : 0;
 
-      // Only include weeks that actually have data
-      if (scans > 0 || installations > 0 || uniqueHomes > 0) {
-        // Create the week data point
-        processedData.push({
-          week: weekLabel,
-          completed: scans,
-          installations: installations,
-          conversion: parseFloat(conversion.toFixed(1)),
-          uniqueHomes: uniqueHomes,
-        });
-      }
+      // Add to processed data
+      processedData.push({
+        week: weekLabel,
+        weekKey: weekKey, // Keep for sorting
+        completed: scans,
+        installations: installations,
+        conversion: parseFloat(conversion.toFixed(1)),
+        uniqueHomes: uniqueHomes,
+      });
     });
 
-    return processedData;
+    console.log(`Generated ${processedData.length} weekly data points`);
+
+    // Final safety check - don't include weeks outside our date range
+    const filteredData = processedData.filter((item) => {
+      const [year, weekCode] = item.weekKey.split("-");
+      const weekNum = parseInt(weekCode.substring(1));
+
+      // Calculate the Sunday date for this week
+      const jan4 = new Date(parseInt(year), 0, 4);
+      const firstMonday = new Date(jan4);
+      firstMonday.setDate(jan4.getDate() - (jan4.getDay() || 7) + 1);
+      const weekSunday = new Date(firstMonday);
+      weekSunday.setDate(firstMonday.getDate() + (weekNum - 1) * 7 + 6);
+
+      // Check if this week's end date is after our max date
+      if (weekSunday > maxDate) {
+        console.warn(
+          `Filtering out future week ${
+            item.week
+          } ending on ${weekSunday.toISOString()}`
+        );
+        return false;
+      }
+
+      return true;
+    });
+
+    if (filteredData.length !== processedData.length) {
+      console.log(
+        `Filtered out ${
+          processedData.length - filteredData.length
+        } future weeks`
+      );
+    }
+
+    // Sort by week key and remove the key from the final output
+    return filteredData
+      .sort((a, b) => a.weekKey.localeCompare(b.weekKey))
+      .map((item) => {
+        const { weekKey, ...rest } = item;
+        return rest;
+      });
   })();
 
   // Speed Test Performance
@@ -855,7 +879,6 @@ const Dashboard = ({
       color: Colors.gray[200], // Use our new color system
     },
   ];
-
   return (
     <div
       className="p-6 w-full bg-gray-50 flex"

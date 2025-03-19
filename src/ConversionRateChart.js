@@ -58,7 +58,8 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
               style={{ backgroundColor: colors.teal }}
             ></div>
             <p className="text-gray-700">
-              Mesh Nodes: <span className="font-medium">{data.completed}</span>
+              Certifications:{" "}
+              <span className="font-medium">{data.completed}</span>
             </p>
           </div>
 
@@ -69,7 +70,7 @@ const ConversionRateChart = ({ weeklyData, colors }) => {
               style={{ backgroundColor: colors.jade }}
             ></div>
             <p className="text-gray-700">
-              Installs:{" "}
+              Mesh Nodes:{" "}
               <span className="font-medium">{data.installations}</span>
             </p>
           </div>
