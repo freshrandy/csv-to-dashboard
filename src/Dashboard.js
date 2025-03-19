@@ -13,6 +13,7 @@ import ActivityMetrics from "./ActivityMetrics";
 import AssessmentQualityIndicators from "./AssessmentQualityIndicators";
 
 // Chart components
+import StatsTable from "./StatsTable";
 import WeeklyProgressChart from "./WeeklyProgressChart";
 import ConversionRateChart from "./ConversionRateChart";
 import RegionalPerformanceComparison from "./RegionalPerformanceComparison";
@@ -145,11 +146,12 @@ const Dashboard = ({
       ? JSON.parse(savedConfig)
       : {
           activityMetrics: true,
+          statsTable: true,
           uniqueVisits: true,
           totalScans: true,
           employeePerformance: true,
-          weeklyProgress: true,
-          conversionRate: true,
+          weeklyProgress: false,
+          conversionRate: false,
           regionalPerformance: true,
           qualityIndicators: true,
           employeeTable: true,
@@ -910,6 +912,11 @@ const Dashboard = ({
               metrics={activityMetrics}
               hasAddresses={hasAddresses}
             />
+          )}
+
+          {/* Stats Table */}
+          {dashboardConfig.statsTable && (
+            <StatsTable data={employeeTableData} hasAddresses={hasAddresses} />
           )}
 
           {/* Weekly Progress Chart */}

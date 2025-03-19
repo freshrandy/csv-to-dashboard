@@ -58,6 +58,23 @@ const ConfigurationPanel = ({
             <span className="text-sm font-medium">Activity Metrics</span>
           </div>
 
+          {/* Add this stats table toggle */}
+          <div
+            className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
+            onClick={() => onToggleComponent("statsTable")}
+          >
+            <div
+              className={`w-5 h-5 rounded-full mr-2 flex items-center justify-center ${
+                config.statsTable ? "bg-teal-500" : "bg-gray-300"
+              }`}
+            >
+              {config.statsTable && (
+                <div className="w-3 h-3 bg-white rounded-full"></div>
+              )}
+            </div>
+            <span className="text-sm font-medium">Statistics Summary</span>
+          </div>
+
           {config.activityMetrics && <div className="pl-6 space-y-2"></div>}
         </div>
       </div>
