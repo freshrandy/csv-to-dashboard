@@ -17,6 +17,8 @@ import StatsTable from "./StatsTable";
 import WeeklyProgressChart from "./WeeklyProgressChart";
 import ConversionRateChart from "./ConversionRateChart";
 import RegionalPerformanceComparison from "./RegionalPerformanceComparison";
+import StatsTableChart from "./StatsTableChart";
+import ConversionRateTableChart from "./ConversionRateTableChart";
 
 // Employee-specific components
 import TechnicianQualityChart from "./TechnicianQualityChart";
@@ -159,6 +161,39 @@ const Dashboard = ({
         };
   });
 
+  // new helper functions.
+  const ensureMetricsWeeklyData = (metrics) => {
+    // If metrics object or nested properties don't exist, can't proceed
+    if (!metrics || !metrics.metrics) {
+      return metrics;
+    }
+
+    // Make sure temporal exists
+    if (!metrics.metrics.temporal) {
+      metrics.metrics.temporal = {};
+    }
+
+    // If we don't have weeklyDistribution, we can't generate the rest
+    if (!metrics.metrics.temporal.weeklyDistribution) {
+      return metrics;
+    }
+
+    // Create formattedWeeklyData if missing
+    if (!metrics.metrics.temporal.formattedWeeklyData) {
+      metrics.metrics.temporal.formattedWeeklyData =
+        createFormattedWeeklyData(metrics);
+    }
+
+    // Create weeklyDataWithConversion if missing
+    if (!metrics.metrics.temporal.weeklyDataWithConversion) {
+      metrics.metrics.temporal.weeklyDataWithConversion = addConversionRates(
+        metrics.metrics.temporal.formattedWeeklyData
+      );
+    }
+
+    return metrics;
+  };
+
   // State to control if config panel is visible
   const [showConfigPanel, setShowConfigPanel] = useState(false);
 
@@ -177,6 +212,14 @@ const Dashboard = ({
 
   // Assessment Quality slider
   const [speedTestThreshold, setSpeedTestThreshold] = useState(80);
+
+  useEffect(() => {
+    if (metrics) {
+      // Ensure metrics object has the required weekly data
+      ensureMetricsWeeklyData(metrics);
+      // Note: We're modifying the metrics object in place
+    }
+  }, [metrics]);
 
   // Save configuration to localStorage when it changes
   useEffect(() => {
@@ -919,15 +962,23 @@ const Dashboard = ({
             <StatsTable data={employeeTableData} hasAddresses={hasAddresses} />
           )}
 
-          {/* Weekly Progress Chart */}
-          {dashboardConfig.weeklyProgress && (
-            <WeeklyProgressChart weeklyData={weeklyData} />
-          )}
+          {/* Weekly Progress Chart - Using Stats Table Data */}
+          {dashboardConfig.weeklyProgress &&
+            metrics?.metrics?.temporal?.formattedWeeklyData && (
+              <StatsTableChart
+                weeklyData={metrics.metrics.temporal.formattedWeeklyData}
+                colors={Colors}
+              />
+            )}
 
-          {/* Conversion Rate Chart */}
-          {dashboardConfig.conversionRate && (
-            <ConversionRateChart weeklyData={weeklyData} colors={Colors} />
-          )}
+          {/* Conversion Rate Chart - Using Stats Table Data */}
+          {dashboardConfig.conversionRate &&
+            metrics?.metrics?.temporal?.weeklyDataWithConversion && (
+              <ConversionRateTableChart
+                weeklyData={metrics.metrics.temporal.weeklyDataWithConversion}
+                colors={Colors}
+              />
+            )}
 
           {/* Regional Performance */}
           {dashboardConfig.regionalPerformance && (

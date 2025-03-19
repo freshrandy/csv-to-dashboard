@@ -153,6 +153,47 @@ const RegionalPerformanceComparison = ({ regionalData, colors }) => {
                   </td>
                 </tr>
               ))}
+
+              {/* Total Summary Row */}
+              <tr className="bg-gray-50 font-medium border-t-2 border-gray-300">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                  TOTAL
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-bold text-gray-900">
+                  {filteredRegions.reduce(
+                    (sum, region) => sum + region.certifications,
+                    0
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-bold text-gray-900">
+                  {filteredRegions.reduce(
+                    (sum, region) => sum + region.installations,
+                    0
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                  <span
+                    className="px-2 py-1 text-xs rounded-full font-bold"
+                    style={{
+                      backgroundColor: colors.electricBlue,
+                      color: "white",
+                    }}
+                  >
+                    {(
+                      (filteredRegions.reduce(
+                        (sum, region) => sum + region.installations,
+                        0
+                      ) /
+                        filteredRegions.reduce(
+                          (sum, region) => sum + region.certifications,
+                          0
+                        )) *
+                      100
+                    ).toFixed(1)}
+                    %
+                  </span>
+                </td>
+              </tr>
             </tbody>
           </table>
         ) : (

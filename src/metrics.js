@@ -349,6 +349,11 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
   const monthlyDistribution = {};
   const weeklyDistribution = {};
 
+  // NEW: Track installations and unique homes per week
+  const weeklyInstallations = {};
+  const weeklyUniqueHomes = {};
+  const processedAddresses = {};
+
   data.forEach((row) => {
     const dateField = row["Date"] || row["Date "];
     if (dateField) {
@@ -363,28 +368,33 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
             (monthlyDistribution[monthKey] || 0) + 1;
 
           // Weekly grouping (using ISO week)
-          const getWeekNumber = (d) => {
-            const date = new Date(d.getTime());
-            date.setHours(0, 0, 0, 0);
-            date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
-            const week1 = new Date(date.getFullYear(), 0, 4);
-            return (
-              1 +
-              Math.round(
-                ((date.getTime() - week1.getTime()) / 86400000 -
-                  3 +
-                  ((week1.getDay() + 6) % 7)) /
-                  7
-              )
-            );
-          };
-
-          const weekNum = getWeekNumber(date);
-          const weekKey = `${date.getFullYear()}-W${String(weekNum).padStart(
-            2,
-            "0"
-          )}`;
+          const weekKey = getWeekKey(date);
           weeklyDistribution[weekKey] = (weeklyDistribution[weekKey] || 0) + 1;
+
+          // NEW: Count installations per week
+          const nodesInstalled = parseInt(row["Mesh Nodes Installed"]) || 0;
+          weeklyInstallations[weekKey] =
+            (weeklyInstallations[weekKey] || 0) + nodesInstalled;
+
+          // NEW: Track unique homes per week
+          if (hasAddresses && row.Address) {
+            const addressKey = `${row.Address}, ${row.City || ""}, ${
+              row["State/Province"] || ""
+            }`;
+
+            // If we haven't seen this address in this week yet
+            if (!processedAddresses[`${weekKey}:${addressKey}`]) {
+              processedAddresses[`${weekKey}:${addressKey}`] = true;
+
+              // Initialize if first address for this week
+              if (!weeklyUniqueHomes[weekKey]) {
+                weeklyUniqueHomes[weekKey] = 0;
+              }
+
+              // Increment unique homes count for this week
+              weeklyUniqueHomes[weekKey]++;
+            }
+          }
         }
       } catch (e) {
         // Skip invalid dates
@@ -396,7 +406,7 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
   const monthlyRevenue = monthlyPrice * totalNodesInstalled;
 
   // Construct the metrics object
-  return {
+  const metricsResult = {
     summary: {
       dateRange,
       totalEntries: data.length,
@@ -452,7 +462,151 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
       temporal: {
         monthlyDistribution,
         weeklyDistribution,
+        // NEW: Add the weekly installations and unique homes data
+        weeklyInstallations,
+        weeklyUniqueHomes,
       },
     },
+    rawData: data, // Add the raw data for reference
   };
+
+  // NEW: Add formatted weekly data for charts
+  metricsResult.metrics.temporal.formattedWeeklyData =
+    formatWeeklyDataForChart(metricsResult);
+
+  // NEW: Add conversion rates to weekly data
+  metricsResult.metrics.temporal.weeklyDataWithConversion =
+    calculateWeeklyConversionRates(
+      metricsResult.metrics.temporal.formattedWeeklyData
+    );
+
+  return metricsResult;
+}
+
+/**
+ * Gets the ISO week number for a date
+ * @param {Date} date - Date object
+ * @returns {string} Week key in YYYY-Www format (e.g., "2025-W01")
+ */
+function getWeekKey(date) {
+  const getWeekNumber = (d) => {
+    const date = new Date(d.getTime());
+    date.setHours(0, 0, 0, 0);
+    // Thursday in current week decides the year
+    date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+    // January 4 is always in week 1
+    const week1 = new Date(date.getFullYear(), 0, 4);
+    // Adjust to Thursday in week 1 and count number of weeks from date to week1
+    return (
+      1 +
+      Math.round(
+        ((date.getTime() - week1.getTime()) / 86400000 -
+          3 +
+          ((week1.getDay() + 6) % 7)) /
+          7
+      )
+    );
+  };
+
+  const weekNum = getWeekNumber(date);
+  return `${date.getFullYear()}-W${String(weekNum).padStart(2, "0")}`;
+}
+
+/**
+ * Format weekly data for charts
+ * @param {Object} metrics - Metrics object from generateMetrics
+ * @returns {Array} Formatted weekly data for charts
+ */
+export function formatWeeklyDataForChart(metrics) {
+  const weeklyDistribution = metrics.metrics.temporal.weeklyDistribution;
+  const weeklyInstallations =
+    metrics.metrics.temporal.weeklyInstallations || {};
+  const weeklyUniqueHomes = metrics.metrics.temporal.weeklyUniqueHomes || {};
+
+  if (!weeklyDistribution || Object.keys(weeklyDistribution).length === 0) {
+    return [];
+  }
+
+  // Create the formatted data
+  const weeklyData = Object.entries(weeklyDistribution).map(
+    ([weekKey, count]) => {
+      // Format the week label
+      const weekLabel = formatWeekRange(weekKey);
+
+      return {
+        week: weekLabel,
+        weekKey,
+        completed: count,
+        installations: weeklyInstallations[weekKey] || 0,
+        uniqueHomes: weeklyUniqueHomes[weekKey] || 0,
+      };
+    }
+  );
+
+  // Sort by week key
+  return weeklyData.sort((a, b) => a.weekKey.localeCompare(b.weekKey));
+}
+
+/**
+ * Calculate conversion rates for weekly data
+ * @param {Array} weeklyData - Formatted weekly data
+ * @returns {Array} Weekly data with conversion rates added
+ */
+export function calculateWeeklyConversionRates(weeklyData) {
+  if (!weeklyData || !Array.isArray(weeklyData)) {
+    return [];
+  }
+
+  return weeklyData.map((week) => {
+    // Calculate conversion rate (installations / certifications) * 100
+    const conversion =
+      week.completed > 0 ? (week.installations / week.completed) * 100 : 0;
+
+    return {
+      ...week,
+      conversion: parseFloat(conversion.toFixed(1)),
+    };
+  });
+}
+
+/**
+ * Format week range for display
+ * @param {string} weekKey - Week key in YYYY-Www format
+ * @returns {string} Formatted date range (e.g., "Jan 1 - Jan 7")
+ */
+function formatWeekRange(weekKey) {
+  // Split the week key (e.g., "2025-W01")
+  const [year, weekCode] = weekKey.split("-");
+  const weekNum = parseInt(weekCode.substring(1));
+
+  try {
+    // Calculate the date of the first day of the week (Monday)
+    // Create a date for Jan 4 of the year (which is always in week 1)
+    const jan4 = new Date(parseInt(year), 0, 4);
+
+    // Get to the Monday of week 1
+    const firstMonday = new Date(jan4);
+    firstMonday.setDate(jan4.getDate() - (firstMonday.getDay() || 7) + 1);
+
+    // Calculate first day of the requested week
+    const firstDay = new Date(firstMonday);
+    firstDay.setDate(firstMonday.getDate() + (weekNum - 1) * 7);
+
+    // Calculate last day of the week (Sunday)
+    const lastDay = new Date(firstDay);
+    lastDay.setDate(firstDay.getDate() + 6);
+
+    // Format the dates
+    const formatDate = (date) => {
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    };
+
+    return `${formatDate(firstDay)} - ${formatDate(lastDay)}`;
+  } catch (e) {
+    console.error("Error formatting week label:", e);
+    return weekKey; // Fall back to the raw week key
+  }
 }
