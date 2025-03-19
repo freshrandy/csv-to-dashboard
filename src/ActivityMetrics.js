@@ -122,8 +122,8 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
             value={(metrics.totalScans / metrics.activeEmployees).toFixed(1)}
             subtitle="certifications"
             colorScheme="secondary"
-            tooltipContent={tooltipContent.activePersonnel.content}
-            tooltipTitle={tooltipContent.activePersonnel.title}
+            tooltipContent={tooltipContent.avgScansPerEmployee.content}
+            tooltipTitle={tooltipContent.avgScansPerEmployee.title}
           />
 
           <MetricCard
@@ -131,8 +131,8 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
             value={(metrics.uniqueVisits / metrics.activeEmployees).toFixed(1)}
             subtitle={locationTermPlural.toLowerCase()}
             colorScheme="success"
-            tooltipContent={tooltipContent.activePersonnel.content}
-            tooltipTitle={tooltipContent.activePersonnel.title}
+            tooltipContent={tooltipContent.avgHomesPerEmployee.content}
+            tooltipTitle={tooltipContent.avgHomesPerEmployee.title}
           />
 
           <MetricCard
@@ -140,8 +140,8 @@ const ActivityMetrics = ({ metrics, hasAddresses }) => {
             value={metrics.avgRooms}
             subtitle="rooms tested"
             colorScheme="info"
-            tooltipContent={tooltipContent.activePersonnel.content}
-            tooltipTitle={tooltipContent.activePersonnel.title}
+            tooltipContent={tooltipContent.avgRooms.content}
+            tooltipTitle={tooltipContent.avgRooms.title}
           />
         </div>
 
