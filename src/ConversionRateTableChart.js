@@ -11,12 +11,21 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
+import Colors from "./Colors";
 
 /**
- * ConversionRateTableChart Component
- * Shows conversion rate trends using data directly from stats table calculations
+ * Improved Conversion Rate Chart Component with Dual-Axis Visualization
+ * Shows conversion rate bars with volume metrics on a secondary axis
+ * Uses data directly from metrics.js for consistency
+ *
+ * @param {Object} props
+ * @param {Object} props.metrics - Processed metrics data from metrics.js
+ * @param {Object} props.colors - Object containing color definitions for styling
  */
-const ConversionRateTableChart = ({ weeklyData, colors }) => {
+const ConversionRateChart = ({ metrics, colors }) => {
+  // Extract the weekly data with conversion rates from metrics
+  const weeklyData = metrics?.metrics?.temporal?.weeklyDataWithConversion || [];
+
   // State for target line toggle and value
   const [showTargetLine, setShowTargetLine] = useState(false);
   const [targetConversion, setTargetConversion] = useState(50);
@@ -25,8 +34,7 @@ const ConversionRateTableChart = ({ weeklyData, colors }) => {
   const [volumeMetric, setVolumeMetric] = useState("completed");
 
   // Make sure we have valid data to work with
-  const validData =
-    weeklyData && Array.isArray(weeklyData) && weeklyData.length > 0;
+  const validData = Array.isArray(weeklyData) && weeklyData.length > 0;
 
   // Custom tooltip to show both conversion and volume metrics
   const CustomTooltip = ({ active, payload, label }) => {
@@ -40,7 +48,7 @@ const ConversionRateTableChart = ({ weeklyData, colors }) => {
           <div className="flex items-center mb-1">
             <div
               className="w-3 h-3 mr-2 rounded-full"
-              style={{ backgroundColor: colors?.electricBlue || "#0066FF" }}
+              style={{ backgroundColor: colors.electricBlue }}
             ></div>
             <p className="text-gray-700">
               Conversion:{" "}
@@ -52,7 +60,7 @@ const ConversionRateTableChart = ({ weeklyData, colors }) => {
           <div className="flex items-center mb-1">
             <div
               className="w-3 h-3 mr-2 rounded-full"
-              style={{ backgroundColor: colors?.teal || "#58DBB9" }}
+              style={{ backgroundColor: colors.teal }}
             ></div>
             <p className="text-gray-700">
               Certifications:{" "}
@@ -64,7 +72,7 @@ const ConversionRateTableChart = ({ weeklyData, colors }) => {
           <div className="flex items-center mb-1">
             <div
               className="w-3 h-3 mr-2 rounded-full"
-              style={{ backgroundColor: colors?.jade || "#4EBAA1" }}
+              style={{ backgroundColor: colors.jade }}
             ></div>
             <p className="text-gray-700">
               Mesh Nodes:{" "}
@@ -112,11 +120,11 @@ const ConversionRateTableChart = ({ weeklyData, colors }) => {
   const volumeDomain = [0, Math.ceil(maxVolume * 1.2)];
 
   return (
-    <div className="bg-white p-5 rounded-lg shadow-md mb-6">
+    <div className="bg-white p-5 rounded-lg shadow-md">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
         <h2
           className="text-xl font-bold mb-2 sm:mb-0"
-          style={{ color: colors?.ash || "#3D4550" }}
+          style={{ color: Colors.ash }}
         >
           Conversion Rate Trend 📈
         </h2>
@@ -248,7 +256,7 @@ const ConversionRateTableChart = ({ weeklyData, colors }) => {
                 yAxisId="left"
                 dataKey="conversion"
                 name="Conversion %"
-                fill={colors?.electricBlue || "#0066FF"}
+                fill={colors.electricBlue}
                 radius={[4, 4, 0, 0]}
               />
 
@@ -266,9 +274,9 @@ const ConversionRateTableChart = ({ weeklyData, colors }) => {
                 }
                 stroke={
                   volumeMetric === "completed"
-                    ? colors?.teal || "#58DBB9"
+                    ? colors.teal
                     : volumeMetric === "installations"
-                    ? colors?.jade || "#4EBAA1"
+                    ? colors.jade
                     : "#9333ea"
                 } // Purple for unique homes
                 strokeWidth={2}
@@ -307,7 +315,7 @@ const ConversionRateTableChart = ({ weeklyData, colors }) => {
           <div className="flex items-center">
             <div
               className="w-3 h-3 mr-1 rounded-full"
-              style={{ backgroundColor: colors?.electricBlue || "#0066FF" }}
+              style={{ backgroundColor: colors.electricBlue }}
             ></div>
             <span>
               Conversion Rate (percentage of certifications resulting in
@@ -320,9 +328,9 @@ const ConversionRateTableChart = ({ weeklyData, colors }) => {
               style={{
                 backgroundColor:
                   volumeMetric === "completed"
-                    ? colors?.teal || "#58DBB9"
+                    ? colors.teal
                     : volumeMetric === "installations"
-                    ? colors?.jade || "#4EBAA1"
+                    ? colors.jade
                     : "#9333ea",
               }}
             ></div>
@@ -342,4 +350,4 @@ const ConversionRateTableChart = ({ weeklyData, colors }) => {
   );
 };
 
-export default ConversionRateTableChart;
+export default ConversionRateChart;

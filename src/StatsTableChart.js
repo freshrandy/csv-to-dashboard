@@ -12,10 +12,16 @@ import {
 
 /**
  * StatsTableChart Component
- * A chart that uses the data directly from the stats table calculations
- * to ensure consistent visualization
+ * Chart that displays weekly metrics using pre-calculated data from metrics.js
+ * 
+ * @param {Object} props
+ * @param {Object} props.metrics - Processed metrics object from metrics.js
+ * @param {Object} props.colors - UI colors object
  */
-const StatsTableChart = ({ weeklyData, colors }) => {
+const StatsTableChart = ({ metrics, colors }) => {
+  // Extract weekly data from metrics
+  const weeklyData = metrics?.metrics?.temporal?.formattedWeeklyData || [];
+
   // State to track which metrics are visible
   const [visibleMetrics, setVisibleMetrics] = useState({
     completed: true,
@@ -32,8 +38,7 @@ const StatsTableChart = ({ weeklyData, colors }) => {
   };
 
   // Make sure we have valid data to work with
-  const validData =
-    weeklyData && Array.isArray(weeklyData) && weeklyData.length > 0;
+  const validData = Array.isArray(weeklyData) && weeklyData.length > 0;
 
   // Define colors and labels for each metric
   const metricConfig = {

@@ -2,7 +2,19 @@ import React, { useState, useEffect } from "react";
 import _ from "lodash";
 import Colors from "./Colors";
 
-const EmployeePerformanceTable = ({ data: csvData, dateRange }) => {
+/**
+ * Employee Performance Table Component
+ * Displays a sortable table of employee performance metrics
+ * Uses data directly from metrics.js for consistency
+ * 
+ * @param {Object} props
+ * @param {Object} props.metrics - Processed metrics data from metrics.js
+ */
+const EmployeePerformanceTable = ({ metrics }) => {
+  // Extract raw data and date range from metrics
+  const csvData = metrics?.rawData || [];
+  const dateRange = metrics?.summary?.dateRange || "No date range available";
+
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [displayData, setDisplayData] = useState([]);
@@ -170,6 +182,7 @@ const EmployeePerformanceTable = ({ data: csvData, dateRange }) => {
     setCurrentPage(page);
     updateDisplayData(filteredData, page);
   };
+  
   // Handle items per page change
   const handleItemsPerPageChange = (e) => {
     const newItemsPerPage = parseInt(e.target.value, 10);
@@ -331,7 +344,7 @@ const EmployeePerformanceTable = ({ data: csvData, dateRange }) => {
       </button>
     );
 
-    // Always add last page button
+    // Last page button
     buttons.push(
       <button
         key="last"
@@ -350,83 +363,82 @@ const EmployeePerformanceTable = ({ data: csvData, dateRange }) => {
     return buttons;
   };
 
+  // Show loading state
   if (isLoading) {
     return (
-      <div className="p-4 bg-white rounded-lg shadow">
-        <h2 className="text-lg font-medium mb-4" style={{ color: Colors.ash }}>
-          Employee Performance Rankings
+      <div className="bg-white p-5 rounded-lg shadow-md mb-6">
+        <h2 className="text-xl font-bold mb-4" style={{ color: Colors.ash }}>
+          Employee Performance Metrics 👥
         </h2>
-        <div className="flex justify-center items-center h-64">
-          <p className="text-gray-500">Loading data...</p>
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
+          <div className="h-64 bg-gray-200 rounded mb-4"></div>
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
         </div>
       </div>
     );
   }
 
+  // Show error state
   if (error) {
     return (
-      <div className="p-4 bg-white rounded-lg shadow">
-        <h2 className="text-xl font-bold mb-4">
-          Employee Performance Rankings
+      <div className="bg-white p-5 rounded-lg shadow-md mb-6">
+        <h2 className="text-xl font-bold mb-4" style={{ color: Colors.ash }}>
+          Employee Performance Metrics 👥
         </h2>
-        <div className="bg-red-100 p-4 rounded">
-          <p className="text-red-700">{error}</p>
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <strong className="font-bold">Error:</strong>
+          <span className="block sm:inline"> {error}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-4">
-        Employee Performance Rankings 🏆
+    <div className="bg-white p-5 rounded-lg shadow-md mb-6">
+      <h2 className="text-xl font-bold mb-2" style={{ color: Colors.ash }}>
+        Employee Performance Metrics 👥
       </h2>
+      <p className="text-sm text-gray-600 mb-4">
+        Data from: {dateRange}
+      </p>
 
-      <div className="mb-4 bg-gray-50 p-4 rounded-lg">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <span className="text-sm text-gray-500">Total Employees</span>
-            <div className="font-medium">{data.length} Employees</div>
+      {/* Employee toggles */}
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-sm font-medium text-gray-700">
+            Show/Hide Employees:
+          </h3>
+          <div className="space-x-2">
+            <button
+              className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200"
+              onClick={showAllEmployees}
+            >
+              Show All
+            </button>
+            <button
+              className="px-3 py-1 text-xs bg-gray-100 text-gray-800 rounded-full hover:bg-gray-200"
+              onClick={hideAllEmployees}
+            >
+              Hide All
+            </button>
           </div>
         </div>
-
-        {/* Employee visibility controls */}
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-medium text-gray-700">
-              Show/Hide Employees:
-            </h3>
-            <div className="space-x-2">
-              <button
-                className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200"
-                onClick={showAllEmployees}
-              >
-                Show All
-              </button>
-              <button
-                className="px-3 py-1 text-xs bg-gray-100 text-gray-800 rounded-full hover:bg-gray-200"
-                onClick={hideAllEmployees}
-              >
-                Hide All
-              </button>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 border border-gray-200 rounded">
-            {data.map((employee) => (
-              <button
-                key={`toggle-${employee.email}`}
-                className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                  visibleEmployees[employee.email]
-                    ? "bg-blue-100 text-blue-800 border border-blue-200"
-                    : "bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-100"
-                }`}
-                onClick={() => toggleEmployee(employee.email)}
-              >
-                {employee.name}
-                {visibleEmployees[employee.email] ? " ✓" : " ⨯"}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 border border-gray-200 rounded">
+          {data.map((employee, index) => (
+            <button
+              key={`toggle-${index}`}
+              className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                visibleEmployees[employee.email]
+                  ? "bg-blue-100 text-blue-800 border border-blue-200"
+                  : "bg-gray-100 text-gray-500 border border-gray-200"
+              }`}
+              onClick={() => toggleEmployee(employee.email)}
+            >
+              {employee.name}
+              {visibleEmployees[employee.email] ? " ✓" : " ⨯"}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -436,13 +448,33 @@ const EmployeePerformanceTable = ({ data: csvData, dateRange }) => {
             <tr>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort("name")}
               >
                 Employee
+                <span className={getSortButtonClass("name")}>▼</span>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort("totalScans")}
+              >
+                Total Scans
+                <span className={getSortButtonClass("totalScans")}>▼</span>
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                onClick={() => requestSort("completedInstallations")}
+              >
+                Nodes Installed
+                <span className={getSortButtonClass("completedInstallations")}>
+                  ▼
+                </span>
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                 onClick={() => requestSort("conversionRate")}
               >
                 Conversion Rate
@@ -450,108 +482,85 @@ const EmployeePerformanceTable = ({ data: csvData, dateRange }) => {
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                onClick={() => requestSort("totalScans")}
-              >
-                Total Certifications
-                <span className={getSortButtonClass("totalScans")}>▼</span>
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                onClick={() => requestSort("completedInstallations")}
-              >
-                Mesh Nodes Installed
-                <span className={getSortButtonClass("completedInstallations")}>
-                  ▼
-                </span>
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                 onClick={() => requestSort("qualityScore")}
               >
-                Quality Score
+                Avg Quality
                 <span className={getSortButtonClass("qualityScore")}>▼</span>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                 onClick={() => requestSort("avgRoomsTested")}
               >
-                Avg. Rooms
+                Avg Rooms
                 <span className={getSortButtonClass("avgRoomsTested")}>▼</span>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                 onClick={() => requestSort("speedTestSuccessRate")}
               >
-                Speed Test Success
-                <span className={getSortButtonClass("speedTestSuccessRate")}>
+                Speed Tests
+                <span
+                  className={getSortButtonClass("speedTestSuccessRate")}
+                >
                   ▼
                 </span>
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {displayData.map((employee) => (
-              <tr key={employee.email}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    {employee.name}
-                  </div>
-                  <div className="text-xs text-gray-500">{employee.email}</div>
+            {displayData.map((employee, index) => (
+              <tr
+                key={index}
+                className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+              >
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {employee.name}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div
-                      className="h-2.5 rounded-full mr-2"
-                      style={{
-                        width: `${Math.min(100, employee.conversionRate)}px`,
-                        backgroundColor: `hsl(${
-                          Math.min(employee.conversionRate, 100) * 1.2
-                        }, 70%, 45%)`,
-                      }}
-                    ></div>
-                    <span className="text-sm font-medium">
-                      {employee.conversionRate.toFixed(1)}%
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
                   {employee.totalScans}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
                   {employee.completedInstallations}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div
-                    className="text-sm font-medium"
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                  <span
+                    className="px-2 py-1 text-xs rounded-full"
                     style={{
-                      color: `rgba(${255 - employee.qualityScore * 255}, ${
-                        employee.qualityScore * 255
-                      }, 100)`,
+                      backgroundColor:
+                        employee.conversionRate > 15
+                          ? Colors.jade
+                          : Colors.cloudGrey,
+                      color: employee.conversionRate > 15 ? "white" : "black",
                     }}
                   >
-                    {(employee.qualityScore * 100).toFixed(1)}%
-                  </div>
+                    {employee.conversionRate.toFixed(1)}%
+                  </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
+                  {employee.qualityScore.toFixed(1)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
                   {employee.avgRoomsTested.toFixed(1)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div
-                    className="text-sm font-medium"
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                  <span
+                    className="px-2 py-1 text-xs rounded-full"
                     style={{
+                      backgroundColor:
+                        employee.speedTestSuccessRate >= 80
+                          ? Colors.jade
+                          : employee.speedTestSuccessRate >= 50
+                          ? Colors.teal
+                          : Colors.cloudGrey,
                       color:
-                        employee.speedTestSuccessRate > 70
-                          ? "#059669"
-                          : "#DC2626",
+                        employee.speedTestSuccessRate >= 50 ? "white" : "black",
                     }}
                   >
                     {employee.speedTestSuccessRate.toFixed(1)}%
-                  </div>
+                  </span>
                 </td>
               </tr>
             ))}
@@ -560,42 +569,26 @@ const EmployeePerformanceTable = ({ data: csvData, dateRange }) => {
       </div>
 
       {/* Pagination controls */}
-      {filteredData.length > itemsPerPage && (
-        <div className="mt-4 flex flex-col sm:flex-row justify-between items-center">
-          <div className="flex items-center mb-4 sm:mb-0">
-            <span className="mr-2 text-sm text-gray-700">Rows per page:</span>
-            <select
-              value={itemsPerPage}
-              onChange={handleItemsPerPageChange}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
-
-          <div className="flex flex-wrap justify-center">
-            {renderPaginationButtons()}
-          </div>
-
-          <div className="text-sm text-gray-700 mt-4 sm:mt-0">
-            Showing{" "}
-            {Math.min(
-              filteredData.length,
-              (currentPage - 1) * itemsPerPage + 1
-            )}{" "}
-            to {Math.min(filteredData.length, currentPage * itemsPerPage)} of{" "}
-            {filteredData.length} employees
-          </div>
+      <div className="mt-4 flex flex-col sm:flex-row justify-between items-center">
+        <div className="mb-4 sm:mb-0">
+          <label className="text-sm text-gray-700 mr-2">Rows per page:</label>
+          <select
+            value={itemsPerPage}
+            onChange={handleItemsPerPageChange}
+            className="text-sm border border-gray-300 rounded py-1 px-2"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
         </div>
-      )}
-
-      <div className="mt-4 text-sm text-gray-500">
-        <p className="mt-2">
-          Currently showing {filteredData.length} of {data.length} employees.
-        </p>
+        <div className="flex items-center">
+          <span className="text-sm text-gray-700 mr-4">
+            Page {currentPage} of {totalPages}
+          </span>
+          <div className="flex">{renderPaginationButtons()}</div>
+        </div>
       </div>
     </div>
   );

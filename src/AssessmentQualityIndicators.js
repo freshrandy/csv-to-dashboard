@@ -4,23 +4,103 @@ import Colors from "./Colors";
 /**
  * Assessment Quality Indicators Component
  * Displays donut charts for speed test success and multi-floor assessment rates
+ * Uses data directly from metrics.js for consistency
  *
  * @param {Object} props
- * @param {Array} props.speedTestData - Data for speed test chart with name, value, color
- * @param {Array} props.floorData - Data for floor assessment chart with name, value, color
+ * @param {Object} props.metrics - Processed metrics data from metrics.js
  * @param {Object} props.colors - Brand color scheme for styling
  * @param {number} props.speedTestThreshold - Current threshold for speed test success rate (percentage)
  * @param {function} props.onSpeedTestThresholdChange - Handler for threshold changes
  */
 const AssessmentQualityIndicators = ({
-  speedTestData,
-  floorData,
+  metrics,
   colors,
   speedTestThreshold = 80, // Default to 80% if not provided
   onSpeedTestThresholdChange = () => {}, // No-op if not provided
 }) => {
   // Local state to track the slider value
   const [sliderValue, setSliderValue] = useState(speedTestThreshold);
+  // State for speed test data
+  const [speedTestData, setSpeedTestData] = useState([]);
+
+  // Get raw data to calculate custom success rates based on threshold
+  const rawData = metrics?.rawData || [];
+
+  // Calculate multi-floor assessment percentage from metrics
+  const floorAssessments = metrics?.metrics?.performance?.floorAssessments || {
+    multiFloorPercentage: 35.0,
+    singleFloorPercentage: 65.0,
+  };
+
+  const multiFloorPercentage = floorAssessments.multiFloorPercentage;
+
+  // Create data for floor chart
+  const floorData = [
+    {
+      name: "Multi-Floor Assessments",
+      value: multiFloorPercentage,
+      color: colors.secondary[500],
+    },
+    {
+      name: "Single-Floor Assessments",
+      value: floorAssessments.singleFloorPercentage,
+      color: colors.gray[200],
+    },
+  ];
+
+  // Calculate speed test success rate based on current threshold
+  useEffect(() => {
+    if (!rawData || rawData.length === 0) {
+      // Default data if no raw data available
+      setSpeedTestData([
+        {
+          name: `Above ${sliderValue}% of Plan`,
+          value: 0,
+          color: colors.primary[400],
+        },
+        {
+          name: `Below ${sliderValue}% of Plan`,
+          value: 100,
+          color: colors.status.error,
+        },
+      ]);
+      return;
+    }
+
+    // Calculate success rate based on current threshold
+    let speedTestCount = 0;
+    let successfulSpeedTests = 0;
+
+    rawData.forEach((row) => {
+      if (row["Expected Speed"] && row["Actual Speed"]) {
+        speedTestCount++;
+        // Use the current slider value to determine success
+        if (
+          row["Actual Speed"] >=
+          (sliderValue / 100) * row["Expected Speed"]
+        ) {
+          successfulSpeedTests++;
+        }
+      }
+    });
+
+    const speedTestSuccessRate =
+      speedTestCount > 0 ? (successfulSpeedTests / speedTestCount) * 100 : 0;
+
+    // Update chart data
+    setSpeedTestData([
+      {
+        name: `Above ${sliderValue}% of Plan`,
+        value: speedTestSuccessRate,
+        color: colors.primary[400],
+      },
+      {
+        name: `Below ${sliderValue}% of Plan`,
+        value: parseFloat((100 - speedTestSuccessRate).toFixed(1)),
+        color: colors.status.error,
+      },
+    ]);
+  }, [sliderValue, rawData, colors]);
 
   // Update local slider value when prop changes
   useEffect(() => {
@@ -96,16 +176,18 @@ const AssessmentQualityIndicators = ({
                 <circle cx="50" cy="50" r="40" fill="#f3f4f6" />
 
                 {/* Success segment - creates a donut chart effect */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="transparent"
-                  stroke={colors.jade}
-                  strokeWidth="20"
-                  strokeDasharray={`${speedTestData[0].value * 2.51} 251`}
-                  transform="rotate(-90 50 50)"
-                />
+                {speedTestData.length > 0 && (
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    fill="transparent"
+                    stroke={colors.jade}
+                    strokeWidth="20"
+                    strokeDasharray={`${speedTestData[0].value * 2.51} 251`}
+                    transform="rotate(-90 50 50)"
+                  />
+                )}
 
                 {/* Inner circle to create donut effect */}
                 <circle cx="50" cy="50" r="30" fill="white" />
@@ -120,7 +202,10 @@ const AssessmentQualityIndicators = ({
                   fontWeight="bold"
                   fill={colors.jade}
                 >
-                  {formatPercent(speedTestData[0].value)}%
+                  {speedTestData.length > 0
+                    ? formatPercent(speedTestData[0].value)
+                    : "0.0"}
+                  %
                 </text>
               </svg>
             </div>
@@ -134,7 +219,10 @@ const AssessmentQualityIndicators = ({
                 ></div>
                 <span>
                   Above {sliderValue}% of Plan:{" "}
-                  {formatPercent(speedTestData[0].value)}%
+                  {speedTestData.length > 0
+                    ? formatPercent(speedTestData[0].value)
+                    : "0.0"}
+                  %
                 </span>
               </div>
               <div className="flex items-center">
@@ -144,7 +232,10 @@ const AssessmentQualityIndicators = ({
                 ></div>
                 <span>
                   Below {sliderValue}% of Plan:{" "}
-                  {formatPercent(speedTestData[1].value)}%
+                  {speedTestData.length > 0
+                    ? formatPercent(speedTestData[1].value)
+                    : "0.0"}
+                  %
                 </span>
               </div>
             </div>

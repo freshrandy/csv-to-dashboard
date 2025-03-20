@@ -4,12 +4,16 @@ import Colors from "./Colors";
 /**
  * Regional Performance Comparison Component
  * Displays a table of regional performance data with toggleable regions
+ * Uses data directly from metrics.js for consistency
  *
  * @param {Object} props
- * @param {Array} props.regionalData - Array of region objects with name, certifications, installations, conversion
+ * @param {Object} props.metrics - Processed metrics data from metrics.js
  * @param {Object} props.colors - Brand color scheme for styling
  */
-const RegionalPerformanceComparison = ({ regionalData, colors }) => {
+const RegionalPerformanceComparison = ({ metrics, colors }) => {
+  // Extract regional data from metrics
+  const regionalData = metrics?.metrics?.conversion?.regionalData || [];
+
   // State to track which regions are visible
   const [visibleRegions, setVisibleRegions] = useState(
     regionalData.reduce((acc, region) => {
