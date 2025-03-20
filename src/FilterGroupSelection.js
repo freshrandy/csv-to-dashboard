@@ -103,7 +103,7 @@ const FilterGroupSelection = ({
         return employeeArray.sort((a, b) =>
           a.displayName.localeCompare(b.displayName)
         );
-      case "scans":
+      case "certifications":
       default:
         return employeeArray.sort((a, b) => b.count - a.count);
     }
@@ -674,7 +674,7 @@ const FilterGroupSelection = ({
                   onChange={(e) => setEmployeeSortOption(e.target.value)}
                   className="p-1 text-xs border border-gray-300 rounded"
                 >
-                  <option value="scans">Most Scans</option>
+                  <option value="scans">Most Certifications</option>
                   <option value="alphabetical">Alphabetical</option>
                 </select>
               </div>
@@ -723,7 +723,7 @@ const FilterGroupSelection = ({
                       </div>
                     </div>
                     <div className="ml-auto text-xs text-gray-500">
-                      {employee.count} scans
+                      {employee.count} certifications
                     </div>
                   </div>
                 </div>
