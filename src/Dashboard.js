@@ -3,10 +3,12 @@ import {
   exportDashboardToPDF,
   exportDashboardLandscape,
   exportVisibleDashboard,
+  cleanupAfterExport,
 } from "./pdfExport";
 
 // Utility and styling
 import Colors from "./Colors";
+import PrintStyles from "./PrintStyles"; // Import PrintStyles component
 
 // Dashboard header and UI controls
 import DashboardHeader from "./DashboardHeader";
@@ -184,6 +186,7 @@ const Dashboard = ({
 
   // New state for PDF export
   const [isExporting, setIsExporting] = useState(false);
+  const [exportType, setExportType] = useState("landscape"); // Default export type
 
   // Reference to the dashboard content div
   const dashboardContentRef = useRef(null);
@@ -233,8 +236,9 @@ const Dashboard = ({
   };
 
   // Handle PDF export
-  const handleExportPDF = async (exportType = "default") => {
+  const handleExportPDF = async (exportType = "landscape") => {
     setIsExporting(true);
+    setExportType(exportType);
 
     try {
       let success = false;
@@ -243,11 +247,14 @@ const Dashboard = ({
         case "landscape":
           success = await exportDashboardLandscape("dashboard-content");
           break;
+        case "portrait":
+          success = await exportDashboardToPDF("dashboard-content");
+          break;
         case "visible-only":
           success = await exportVisibleDashboard();
           break;
         default:
-          success = await exportDashboardToPDF("dashboard-content");
+          success = await exportDashboardLandscape("dashboard-content");
           break;
       }
 
@@ -257,6 +264,8 @@ const Dashboard = ({
     } catch (error) {
       console.error("Export failed:", error);
     } finally {
+      // Clean up the document after export is complete
+      cleanupAfterExport("dashboard-content");
       setIsExporting(false);
     }
   };
@@ -523,28 +532,33 @@ const Dashboard = ({
       className="p-6 w-full bg-gray-50 flex"
       style={{ fontFamily: "DM Sans, sans-serif" }}
     >
+      {/* Include PrintStyles component for print/PDF styling */}
+      <PrintStyles />
+
       {/* Main Content Area */}
       <div
         className={`flex-1 transition-all duration-300 ${
           showConfigPanel ? "mr-64" : ""
         }`}
       >
-        {/* DashboardHeader */}
-        <DashboardHeader
-          clientName={clientName}
-          dateRange={dateRange}
-          activeFilterGroup={activeFilterGroup}
-          filterGroups={filterGroups}
-          onChangeFilter={onChangeFilter}
-          onOpenGlossary={() => setShowMetricsGlossary(true)}
-          onToggleConfig={() => setShowConfigPanel(!showConfigPanel)}
-          onDownloadJson={onDownloadJson}
-          onResetApp={onResetApp}
-          onExportPDF={handleExportPDF} // New prop for PDF export
-          isExporting={isExporting} // Pass exporting state
-        />
+        {/* DashboardHeader with class for print styling */}
+        <div className="dashboard-header">
+          <DashboardHeader
+            clientName={clientName}
+            dateRange={dateRange}
+            activeFilterGroup={activeFilterGroup}
+            filterGroups={filterGroups}
+            onChangeFilter={onChangeFilter}
+            onOpenGlossary={() => setShowMetricsGlossary(true)}
+            onToggleConfig={() => setShowConfigPanel(!showConfigPanel)}
+            onDownloadJson={onDownloadJson}
+            onResetApp={onResetApp}
+            onExportPDF={handleExportPDF}
+            isExporting={isExporting}
+          />
+        </div>
 
-        {/* Dashboard content - Add ID and ref */}
+        {/* Dashboard content with ID and ref for PDF export */}
         <div
           id="dashboard-content"
           ref={dashboardContentRef}
@@ -674,7 +688,12 @@ const Dashboard = ({
                 <div className="mr-4">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                 </div>
-                <p className="text-lg">Generating PDF...</p>
+                <div>
+                  <p className="text-lg">Generating PDF...</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    This may take a few moments. Please don't close this window.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

@@ -2,81 +2,129 @@
 
 /* Styles specifically for print/PDF export */
 @media print {
-    /* Hide elements that shouldn't appear in prints */
-    .print-hide,
-    .no-print,
-    button,
-    .config-panel,
-    .button {
-      display: none !important;
-    }
-    
-    /* Full width for content */
-    .dashboard-content {
-      width: 100% !important;
-      margin: 0 !important;
-      padding: 0.5cm !important;
-    }
-    
-    /* Keep backgrounds in exported PDF */
-    * {
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    
-    /* Add page breaks after main sections */
-    .page-break-after {
-      page-break-after: always;
-    }
-    
-    /* Prevent orphaned headers */
-    h2, h3 {
-      page-break-after: avoid;
-    }
-    
-    /* Make text slightly larger for better readability */
-    body {
-      font-size: 12pt;
-    }
-    
-    /* Adjust table display for printing */
-    table {
-      page-break-inside: auto;
-    }
-    
-    tr {
-      page-break-inside: avoid;
-      page-break-after: auto;
-    }
-    
-    /* Reduce the size of charts for better fit */
-    .recharts-wrapper {
-      max-height: 450px !important;
-      transform: scale(0.9);
-      transform-origin: top left;
-    }
-    
-    /* Ensure shadows still appear in PDFs */
-    .shadow-md, 
-    .shadow-lg,
-    .shadow-sm,
-    .shadow-xl,
-    .shadow {
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
-    }
-    
-    /* Force grid layout to work well in PDF */
-    .grid {
-      display: grid !important;
-    }
-    
-    /* Improve contrast for PDF text */
-    .text-gray-500 {
-      color: #333 !important;
-    }
-    
-    /* Add space between sections */
-    .mb-6 {
-      margin-bottom: 1.5rem !important;
-    }
+  /* Hide elements that shouldn't appear in prints */
+  .print-hide,
+  .no-print,
+  button,
+  .config-panel,
+  .button {
+    display: none !important;
   }
+
+  /* Full width for content */
+  .dashboard-content {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0.5cm !important;
+  }
+
+  /* Keep backgrounds in exported PDF */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Force page breaks before specific components */
+  .pdf-page-break-before {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  /* Prevent content from being split across pages */
+  .pdf-keep-together {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Prevent orphaned headers */
+  h2,
+  h3 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  /* Make text slightly larger for better readability */
+  body {
+    font-size: 12pt;
+  }
+
+  /* Adjust table display for printing */
+  table {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Handle large charts to prevent them from breaking across pages */
+  .recharts-wrapper {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    max-height: 500px !important;
+  }
+
+  /* Parent containers of charts should also avoid page breaks */
+  .recharts-wrapper-container {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Ensure charts and tables stay on their own pages */
+  .bg-white.p-5.rounded-lg.shadow-md,
+  .bg-white.rounded-lg.shadow-md,
+  .bg-white.p-6.rounded-lg.shadow-md {
+    margin-top: 20px !important;
+    padding-top: 10px !important;
+  }
+
+  /* Ensure shadows still appear in PDFs */
+  .shadow-md,
+  .shadow-lg,
+  .shadow-sm,
+  .shadow-xl,
+  .shadow {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Force grid layout to work well in PDF */
+  .grid {
+    display: grid !important;
+  }
+
+  /* Improve contrast for PDF text */
+  .text-gray-500 {
+    color: #333 !important;
+  }
+
+  /* Add space between sections */
+  .mb-6 {
+    margin-bottom: 1.5rem !important;
+  }
+
+  /* Ensure header stays at the top of the first page */
+  .dashboard-header {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  /* Make sure key metric cards stay together */
+  .metric-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Ensure the filter indicator stays with the following content */
+  .filter-indicator {
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
