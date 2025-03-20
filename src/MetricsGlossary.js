@@ -68,9 +68,9 @@ const MetricsGlossary = ({ isOpen, onClose }) => {
       {
         name: "Speed Test Success Rate",
         calculation:
-          "(Number of assessments with actual speed ≥ 80% of expected speed ÷ Number of assessments with speed tests) × 100",
+          "(Number of assessments with actual speed ≥ 50% of expected speed ÷ Number of assessments with speed tests) × 100",
         description:
-          "Percentage of installations where actual speed reached at least 80% of the expected speed",
+          "Percentage of installations where actual speed reached at least 50% of the expected speed",
       },
       {
         name: "Average Speed Ratio",

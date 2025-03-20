@@ -6,7 +6,7 @@ import Colors from "./Colors";
  * Employee Performance Table Component
  * Displays a sortable table of employee performance metrics
  * Uses data directly from metrics.js for consistency
- * 
+ *
  * @param {Object} props
  * @param {Object} props.metrics - Processed metrics data from metrics.js
  */
@@ -182,7 +182,7 @@ const EmployeePerformanceTable = ({ metrics }) => {
     setCurrentPage(page);
     updateDisplayData(filteredData, page);
   };
-  
+
   // Handle items per page change
   const handleItemsPerPageChange = (e) => {
     const newItemsPerPage = parseInt(e.target.value, 10);
@@ -399,9 +399,7 @@ const EmployeePerformanceTable = ({ metrics }) => {
       <h2 className="text-xl font-bold mb-2" style={{ color: Colors.ash }}>
         Employee Performance Metrics 👥
       </h2>
-      <p className="text-sm text-gray-600 mb-4">
-        Data from: {dateRange}
-      </p>
+      <p className="text-sm text-gray-600 mb-4">Data from: {dateRange}</p>
 
       {/* Employee toggles */}
       <div className="mb-4">
@@ -459,7 +457,7 @@ const EmployeePerformanceTable = ({ metrics }) => {
                 className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                 onClick={() => requestSort("totalScans")}
               >
-                Total Scans
+                Total Certificates
                 <span className={getSortButtonClass("totalScans")}>▼</span>
               </th>
               <th
@@ -485,7 +483,7 @@ const EmployeePerformanceTable = ({ metrics }) => {
                 className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                 onClick={() => requestSort("qualityScore")}
               >
-                Avg Quality
+                Avg QOI
                 <span className={getSortButtonClass("qualityScore")}>▼</span>
               </th>
               <th
@@ -493,20 +491,8 @@ const EmployeePerformanceTable = ({ metrics }) => {
                 className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                 onClick={() => requestSort("avgRoomsTested")}
               >
-                Avg Rooms
+                Avg # of Rooms
                 <span className={getSortButtonClass("avgRoomsTested")}>▼</span>
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                onClick={() => requestSort("speedTestSuccessRate")}
-              >
-                Speed Tests
-                <span
-                  className={getSortButtonClass("speedTestSuccessRate")}
-                >
-                  ▼
-                </span>
               </th>
             </tr>
           </thead>
@@ -530,10 +516,10 @@ const EmployeePerformanceTable = ({ metrics }) => {
                     className="px-2 py-1 text-xs rounded-full"
                     style={{
                       backgroundColor:
-                        employee.conversionRate > 15
+                        employee.conversionRate > 10
                           ? Colors.jade
                           : Colors.cloudGrey,
-                      color: employee.conversionRate > 15 ? "white" : "black",
+                      color: employee.conversionRate > 10 ? "white" : "black",
                     }}
                   >
                     {employee.conversionRate.toFixed(1)}%
@@ -544,23 +530,6 @@ const EmployeePerformanceTable = ({ metrics }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
                   {employee.avgRoomsTested.toFixed(1)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                  <span
-                    className="px-2 py-1 text-xs rounded-full"
-                    style={{
-                      backgroundColor:
-                        employee.speedTestSuccessRate >= 80
-                          ? Colors.jade
-                          : employee.speedTestSuccessRate >= 50
-                          ? Colors.teal
-                          : Colors.cloudGrey,
-                      color:
-                        employee.speedTestSuccessRate >= 50 ? "white" : "black",
-                    }}
-                  >
-                    {employee.speedTestSuccessRate.toFixed(1)}%
-                  </span>
                 </td>
               </tr>
             ))}
