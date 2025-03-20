@@ -28,6 +28,7 @@ const FilterGroupSelection = ({
   const [employees, setEmployees] = useState([]);
   const [hasEmployeeData, setHasEmployeeData] = useState(true);
   const fileInputRef = React.useRef(null);
+  const [employeeSortOption, setEmployeeSortOption] = useState("scans");
 
   // Determine if data has employee information
   useEffect(() => {
@@ -92,6 +93,21 @@ const FilterGroupSelection = ({
       setEmployees(employeeArray);
     }
   }, [parsedData]);
+
+  // Sort employees based on selected option
+  const sortedEmployees = React.useMemo(() => {
+    const employeeArray = [...employees];
+
+    switch (employeeSortOption) {
+      case "alphabetical":
+        return employeeArray.sort((a, b) =>
+          a.displayName.localeCompare(b.displayName)
+        );
+      case "scans":
+      default:
+        return employeeArray.sort((a, b) => b.count - a.count);
+    }
+  }, [employees, employeeSortOption]);
 
   // Set initial selections when editing a group
   useEffect(() => {
@@ -172,7 +188,7 @@ const FilterGroupSelection = ({
   // Select all employees
   const selectAllEmployees = () => {
     const newSelected = {};
-    employees.forEach((emp) => {
+    sortedEmployees.forEach((emp) => {
       newSelected[emp.email] = true;
     });
     setSelectedEmployees(newSelected);
@@ -298,7 +314,7 @@ const FilterGroupSelection = ({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+                  d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2M8 7h4a2 2 0 012 2v4m0 0h2a2 2 0 012 2v4m0 0h-4m4 0h2M8 7a2 2 0 012-2h4a2 2 0 012 2v8a2 2 0 01-2 2H8"
                 />
               </svg>
               Save/Load Groups
@@ -650,6 +666,19 @@ const FilterGroupSelection = ({
               Select employees for this group
             </div>
             <div className="flex space-x-2">
+              {/* Sorting dropdown */}
+              <div className="flex items-center">
+                <label className="mr-2 text-sm text-gray-600">Sort by:</label>
+                <select
+                  value={employeeSortOption}
+                  onChange={(e) => setEmployeeSortOption(e.target.value)}
+                  className="p-1 text-xs border border-gray-300 rounded"
+                >
+                  <option value="scans">Most Scans</option>
+                  <option value="alphabetical">Alphabetical</option>
+                </select>
+              </div>
+
               <button
                 className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
                 onClick={selectAllEmployees}
@@ -668,7 +697,7 @@ const FilterGroupSelection = ({
           {/* Employee selection list */}
           <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-md p-2 mb-4">
             <div className="space-y-2">
-              {employees.map((employee) => (
+              {sortedEmployees.map((employee) => (
                 <div
                   key={employee.email}
                   className={`p-2 rounded-md cursor-pointer transition-colors ${
