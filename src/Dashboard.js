@@ -153,17 +153,26 @@ const Dashboard = ({
     return savedConfig
       ? JSON.parse(savedConfig)
       : {
+          // Main components
           activityMetrics: true,
           statsTable: true,
-          uniqueVisits: true,
-          totalScans: true,
-          employeePerformance: true,
           weeklyProgress: false,
-          conversionRate: false,
+          conversionRateChart: false,
           regionalPerformance: true,
           qualityIndicators: true,
           employeeTable: true,
           qualityChart: true,
+
+          // Individual activity metric cards
+          totalScans: true,
+          uniqueVisits: true,
+          activeEmployees: true,
+          conversionRate: true,
+          nodesInstalled: true,
+          nodesRecommended: true,
+          installRatio: true,
+          avgRoomsTested: true,
+          multiFloorRate: true,
         };
   });
 
@@ -495,7 +504,10 @@ const Dashboard = ({
         <div className="flex flex-col gap-6">
           {/* Activity Metrics */}
           {dashboardConfig.activityMetrics && (
-            <ActivityMetrics metrics={currentMetrics} />
+            <ActivityMetrics
+              metrics={currentMetrics}
+              config={dashboardConfig}
+            />
           )}
 
           {/* Stats Table */}

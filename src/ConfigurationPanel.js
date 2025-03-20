@@ -58,6 +58,155 @@ const ConfigurationPanel = ({
             <span className="text-sm font-medium">Activity Metrics</span>
           </div>
 
+          {/* Individual metric cards - only show when activityMetrics is true */}
+          {config.activityMetrics && (
+            <div className="pl-6 space-y-2">
+              <div
+                className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
+                onClick={() => onToggleComponent("totalScans")}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
+                    config.totalScans ? "bg-teal-500" : "bg-gray-300"
+                  }`}
+                >
+                  {config.totalScans && (
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  )}
+                </div>
+                <span className="text-sm">Total Certifications</span>
+              </div>
+
+              <div
+                className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
+                onClick={() => onToggleComponent("uniqueVisits")}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
+                    config.uniqueVisits ? "bg-teal-500" : "bg-gray-300"
+                  }`}
+                >
+                  {config.uniqueVisits && (
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  )}
+                </div>
+                <span className="text-sm">Unique Homes</span>
+              </div>
+
+              <div
+                className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
+                onClick={() => onToggleComponent("activeEmployees")}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
+                    config.activeEmployees ? "bg-teal-500" : "bg-gray-300"
+                  }`}
+                >
+                  {config.activeEmployees && (
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  )}
+                </div>
+                <span className="text-sm">Active Employees</span>
+              </div>
+
+              <div
+                className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
+                onClick={() => onToggleComponent("conversionRate")}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
+                    config.conversionRate ? "bg-teal-500" : "bg-gray-300"
+                  }`}
+                >
+                  {config.conversionRate && (
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  )}
+                </div>
+                <span className="text-sm">Conversion Rate</span>
+              </div>
+
+              <div
+                className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
+                onClick={() => onToggleComponent("nodesInstalled")}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
+                    config.nodesInstalled ? "bg-teal-500" : "bg-gray-300"
+                  }`}
+                >
+                  {config.nodesInstalled && (
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  )}
+                </div>
+                <span className="text-sm">Mesh Nodes Installed</span>
+              </div>
+
+              <div
+                className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
+                onClick={() => onToggleComponent("nodesRecommended")}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
+                    config.nodesRecommended ? "bg-teal-500" : "bg-gray-300"
+                  }`}
+                >
+                  {config.nodesRecommended && (
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  )}
+                </div>
+                <span className="text-sm">Nodes Recommended</span>
+              </div>
+
+              <div
+                className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
+                onClick={() => onToggleComponent("installRatio")}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
+                    config.installRatio ? "bg-teal-500" : "bg-gray-300"
+                  }`}
+                >
+                  {config.installRatio && (
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  )}
+                </div>
+                <span className="text-sm">Installation Ratio</span>
+              </div>
+
+              <div
+                className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
+                onClick={() => onToggleComponent("avgRoomsTested")}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
+                    config.avgRoomsTested ? "bg-teal-500" : "bg-gray-300"
+                  }`}
+                >
+                  {config.avgRoomsTested && (
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  )}
+                </div>
+                <span className="text-sm">Average Rooms Tested</span>
+              </div>
+
+              <div
+                className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
+                onClick={() => onToggleComponent("multiFloorRate")}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
+                    config.multiFloorRate ? "bg-teal-500" : "bg-gray-300"
+                  }`}
+                >
+                  {config.multiFloorRate && (
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  )}
+                </div>
+                <span className="text-sm">Multi-Floor Rate</span>
+              </div>
+            </div>
+          )}
+
           {/* Add this stats table toggle */}
           <div
             className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
@@ -74,8 +223,6 @@ const ConfigurationPanel = ({
             </div>
             <span className="text-sm font-medium">Statistics Summary</span>
           </div>
-
-          {config.activityMetrics && <div className="pl-6 space-y-2"></div>}
         </div>
       </div>
 
@@ -101,14 +248,14 @@ const ConfigurationPanel = ({
 
           <div
             className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
-            onClick={() => onToggleComponent("conversionRate")}
+            onClick={() => onToggleComponent("conversionRateChart")}
           >
             <div
               className={`w-5 h-5 rounded-full mr-2 flex items-center justify-center ${
-                config.conversionRate ? "bg-teal-500" : "bg-gray-300"
+                config.conversionRateChart ? "bg-teal-500" : "bg-gray-300"
               }`}
             >
-              {config.conversionRate && (
+              {config.conversionRateChart && (
                 <div className="w-3 h-3 bg-white rounded-full"></div>
               )}
             </div>
