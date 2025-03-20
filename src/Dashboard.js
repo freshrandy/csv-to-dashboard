@@ -202,7 +202,7 @@ const Dashboard = ({
   const [showMetricsGlossary, setShowMetricsGlossary] = useState(false);
 
   // Assessment Quality slider
-  const [speedTestThreshold, setSpeedTestThreshold] = useState(80);
+  const [speedTestThreshold, setSpeedTestThreshold] = useState(50);
 
   // Use the enhanced metrics if available, otherwise fall back to original
   const currentMetrics = enhancedMetrics || metrics;
