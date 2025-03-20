@@ -522,7 +522,7 @@ const Dashboard = ({
             )}
 
           {/* Conversion Rate Chart - Using Enhanced Stats Table Data */}
-          {dashboardConfig.conversionRate &&
+          {dashboardConfig.conversionRateChart &&
             currentMetrics?.metrics?.temporal?.weeklyDataWithConversion && (
               <ConversionRateTableChart
                 metrics={currentMetrics}

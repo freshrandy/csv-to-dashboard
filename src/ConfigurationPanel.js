@@ -259,7 +259,7 @@ const ConfigurationPanel = ({
                 <div className="w-3 h-3 bg-white rounded-full"></div>
               )}
             </div>
-            <span className="text-sm">Conversion Rate</span>
+            <span className="text-sm">Conversion Rate Trend</span>
           </div>
 
           <div
