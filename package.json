@@ -15,7 +15,10 @@
     "recharts": "2.15.1",
     "tailwindcss": "4.0.12",
     "lodash": "^4.17.21",
-    "react-transition-group": "^4.4.5"
+    "react-transition-group": "^4.4.5",
+    "html2pdf.js": "^0.10.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1"
   },
   "devDependencies": {
     "@types/react": "19.0.0",
