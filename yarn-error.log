@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/local/share/nvm/versions/node/v20.12.1/bin/node /usr/share/yarn/bin/yarn.js add lodash
+  /usr/local/share/nvm/versions/node/v20.12.1/bin/node /usr/share/yarn/bin/yarn.js add html2pdf.js html2canvas jspdf
 
 PATH: 
   /opt/git/bin:/usr/local/rvm/gems/ruby-3.2.3/bin:/usr/local/rvm/gems/ruby-3.2.3@global/bin:/usr/local/rvm/rubies/ruby-3.2.3/bin:/vscode/1.89.1.24130/bin/remote-cli:/opt/conda/condabin:/home/codespace/.dotnet:/home/codespace/nvm/current/bin:/home/codespace/.php/current/bin:/home/codespace/.python/current/bin:/home/codespace/java/current/bin:/home/codespace/.ruby/current/bin:/home/codespace/.local/bin:/usr/local/python/current/bin:/usr/local/py-utils/bin:/usr/local/oryx:/usr/local/go/bin:/go/bin:/usr/local/sdkman/bin:/usr/local/sdkman/candidates/java/current/bin:/usr/local/sdkman/candidates/gradle/current/bin:/usr/local/sdkman/candidates/maven/current/bin:/usr/local/sdkman/candidates/ant/current/bin:/usr/local/rvm/gems/default/bin:/usr/local/rvm/gems/default@global/bin:/usr/local/rvm/rubies/default/bin:/usr/local/share/rbenv/bin:/usr/local/php/current/bin:/opt/conda/bin:/usr/local/nvs:/usr/local/share/nvm/versions/node/v20.12.1/bin:/usr/local/hugo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/share/dotnet:/root/.dotnet/tools:/usr/local/rvm/bin:/root/.local/bin
@@ -14,7 +14,7 @@ Platform:
   linux x64
 
 Trace: 
-  Error: ENOENT: no such file or directory, copyfile '/root/.cache/yarn/v6/npm-globals-13.24.0-8432a19d78ce0c1e833949c36adb345400bb1171-integrity/node_modules/globals/globals.json' -> '/project/workspace/node_modules/@eslint/eslintrc/node_modules/globals/globals.json'
+  Error: ENOENT: no such file or directory, copyfile '/root/.cache/yarn/v6/npm-glob-parent-6.0.2-6d237d99083950c79290f24c7642a3de9a28f9e3-integrity/node_modules/glob-parent/LICENSE' -> '/project/workspace/node_modules/react-scripts/node_modules/glob-parent/LICENSE'
 
 npm manifest: 
   {
@@ -33,7 +33,11 @@ npm manifest:
       "file-saver": "2.0.5",
       "recharts": "2.15.1",
       "tailwindcss": "4.0.12",
-      "lodash": "^4.17.21"
+      "lodash": "^4.17.21",
+      "react-transition-group": "^4.4.5",
+      "html2pdf.js": "^0.10.1",
+      "html2canvas": "^1.4.1",
+      "jspdf": "^2.5.1"
     },
     "devDependencies": {
       "@types/react": "19.0.0",

@@ -1,7 +1,6 @@
 import React from "react";
 import Colors from "./Colors";
 import FilterIndicator from "./FilterIndicator";
-// import TooltipToggle from "./TooltipToggle"; // Import the tooltip toggle component, turned off temporarily
 
 const DashboardHeader = ({
   clientName = "Certify Analysis",
@@ -13,6 +12,8 @@ const DashboardHeader = ({
   onToggleConfig,
   onDownloadJson,
   onResetApp,
+  onExportPDF,
+  isExporting = false, // Flag to show export is in progress
 }) => {
   // Background gradient style using updated color system
   const headerStyle = {
@@ -30,29 +31,7 @@ const DashboardHeader = ({
             <div className="flex items-center space-x-3">
               {/* Button Group 1: Main Actions */}
               <div className="flex space-x-2">
-                {/* Export Data Button */}
-                <button
-                  onClick={onDownloadJson}
-                  className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm rounded-lg transition-all flex items-center"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
-                  Export JSON
-                </button>
-
-                {/* New Analysis Button */}
+                {/* New Analysis Button - White background */}
                 <button
                   onClick={onResetApp}
                   className="px-4 py-2 bg-white hover:bg-opacity-90 text-blue-600 text-sm rounded-lg transition-all flex items-center font-medium"
@@ -72,6 +51,81 @@ const DashboardHeader = ({
                     />
                   </svg>
                   New Analysis
+                </button>
+
+                {/* Export PDF Button - Simplified for landscape only */}
+                <button
+                  onClick={() => onExportPDF("landscape")}
+                  disabled={isExporting}
+                  className={`px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm rounded-lg transition-all flex items-center ${
+                    isExporting ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
+                >
+                  {isExporting ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      Export PDF
+                    </>
+                  )}
+                </button>
+
+                {/* Export JSON Button */}
+                <button
+                  onClick={onDownloadJson}
+                  className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm rounded-lg transition-all flex items-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  Export JSON
                 </button>
               </div>
 

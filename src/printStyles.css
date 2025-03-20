@@ -1,0 +1,82 @@
+/* src/printStyles.css */
+
+/* Styles specifically for print/PDF export */
+@media print {
+    /* Hide elements that shouldn't appear in prints */
+    .print-hide,
+    .no-print,
+    button,
+    .config-panel,
+    .button {
+      display: none !important;
+    }
+    
+    /* Full width for content */
+    .dashboard-content {
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 0.5cm !important;
+    }
+    
+    /* Keep backgrounds in exported PDF */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
+    /* Add page breaks after main sections */
+    .page-break-after {
+      page-break-after: always;
+    }
+    
+    /* Prevent orphaned headers */
+    h2, h3 {
+      page-break-after: avoid;
+    }
+    
+    /* Make text slightly larger for better readability */
+    body {
+      font-size: 12pt;
+    }
+    
+    /* Adjust table display for printing */
+    table {
+      page-break-inside: auto;
+    }
+    
+    tr {
+      page-break-inside: avoid;
+      page-break-after: auto;
+    }
+    
+    /* Reduce the size of charts for better fit */
+    .recharts-wrapper {
+      max-height: 450px !important;
+      transform: scale(0.9);
+      transform-origin: top left;
+    }
+    
+    /* Ensure shadows still appear in PDFs */
+    .shadow-md, 
+    .shadow-lg,
+    .shadow-sm,
+    .shadow-xl,
+    .shadow {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* Force grid layout to work well in PDF */
+    .grid {
+      display: grid !important;
+    }
+    
+    /* Improve contrast for PDF text */
+    .text-gray-500 {
+      color: #333 !important;
+    }
+    
+    /* Add space between sections */
+    .mb-6 {
+      margin-bottom: 1.5rem !important;
+    }
+  }

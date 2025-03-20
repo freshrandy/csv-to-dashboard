@@ -1,4 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  exportDashboardToPDF,
+  exportDashboardLandscape,
+  exportVisibleDashboard,
+} from "./pdfExport";
 
 // Utility and styling
 import Colors from "./Colors";
@@ -143,6 +148,7 @@ const Dashboard = ({
   onChangeFilter,
   onDownloadJson,
   onResetApp,
+  onExportPDF, // New prop for external control of PDF export
 }) => {
   // Enhanced metrics state - our single source of truth
   const [enhancedMetrics, setEnhancedMetrics] = useState(null);
@@ -175,6 +181,12 @@ const Dashboard = ({
           multiFloorRate: true,
         };
   });
+
+  // New state for PDF export
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Reference to the dashboard content div
+  const dashboardContentRef = useRef(null);
 
   // Enhance metrics when they change
   useEffect(() => {
@@ -218,6 +230,35 @@ const Dashboard = ({
       ...prev,
       [componentId]: !prev[componentId],
     }));
+  };
+
+  // Handle PDF export
+  const handleExportPDF = async (exportType = "default") => {
+    setIsExporting(true);
+
+    try {
+      let success = false;
+
+      switch (exportType) {
+        case "landscape":
+          success = await exportDashboardLandscape("dashboard-content");
+          break;
+        case "visible-only":
+          success = await exportVisibleDashboard();
+          break;
+        default:
+          success = await exportDashboardToPDF("dashboard-content");
+          break;
+      }
+
+      if (success) {
+        console.log("Export successful");
+      }
+    } catch (error) {
+      console.error("Export failed:", error);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Apply a preset configuration
@@ -499,9 +540,16 @@ const Dashboard = ({
           onToggleConfig={() => setShowConfigPanel(!showConfigPanel)}
           onDownloadJson={onDownloadJson}
           onResetApp={onResetApp}
+          onExportPDF={handleExportPDF} // New prop for PDF export
+          isExporting={isExporting} // Pass exporting state
         />
 
-        <div className="flex flex-col gap-6">
+        {/* Dashboard content - Add ID and ref */}
+        <div
+          id="dashboard-content"
+          ref={dashboardContentRef}
+          className="flex flex-col gap-6"
+        >
           {/* Activity Metrics */}
           {dashboardConfig.activityMetrics && (
             <ActivityMetrics
@@ -551,72 +599,86 @@ const Dashboard = ({
               }}
             />
           )}
-        </div>
 
-        {/* Employee Performance Table */}
-        {hasEmployeeData() && dashboardConfig.employeeTable && (
-          <div className="mt-8">
-            <EmployeePerformanceTable
-              metrics={currentMetrics}
-              dateRange={dateRange}
-            />
-          </div>
-        )}
-
-        {/* Quality metrics */}
-        {currentMetrics.qualityCohort &&
-          hasEmployeeData() &&
-          dashboardConfig.qualityChart && (
+          {/* Employee Performance Table */}
+          {hasEmployeeData() && dashboardConfig.employeeTable && (
             <div className="mt-8">
-              <TechnicianQualityChart
-                cohortData={currentMetrics.qualityCohort}
-                filteredData={employeeTableData}
+              <EmployeePerformanceTable
+                metrics={currentMetrics}
                 dateRange={dateRange}
               />
             </div>
           )}
 
-        {/* No components message when all are hidden */}
-        {!Object.values(dashboardConfig).some((value) => value) && (
-          <div className="bg-white p-8 rounded-lg shadow text-center my-8">
-            <svg
-              className="w-16 h-16 mx-auto mb-4 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No Components Selected
-            </h3>
-            <p className="text-gray-500 mb-4">
-              Please enable at least one component from the configuration panel
-              to visualize your data.
-            </p>
-            <button
-              onClick={() => applyPreset("showAll")}
-              className="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600"
-            >
-              Show All Components
-            </button>
-          </div>
-        )}
+          {/* Quality metrics */}
+          {currentMetrics.qualityCohort &&
+            hasEmployeeData() &&
+            dashboardConfig.qualityChart && (
+              <div className="mt-8">
+                <TechnicianQualityChart
+                  cohortData={currentMetrics.qualityCohort}
+                  filteredData={employeeTableData}
+                  dateRange={dateRange}
+                />
+              </div>
+            )}
 
-        {/* Footer with gradient */}
-        <div
-          className="mt-8 p-4 rounded-lg text-white text-center"
-          style={{ background: Colors.gradients.primary }}
-        >
-          <div className="text-center">
-            <span>Dashboard by {preparedBy}</span>
+          {/* No components message when all are hidden */}
+          {!Object.values(dashboardConfig).some((value) => value) && (
+            <div className="bg-white p-8 rounded-lg shadow text-center my-8">
+              <svg
+                className="w-16 h-16 mx-auto mb-4 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No Components Selected
+              </h3>
+              <p className="text-gray-500 mb-4">
+                Please enable at least one component from the configuration
+                panel to visualize your data.
+              </p>
+              <button
+                onClick={() => applyPreset("showAll")}
+                className="px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600"
+              >
+                Show All Components
+              </button>
+            </div>
+          )}
+
+          {/* Footer with gradient */}
+          <div
+            className="mt-8 p-4 rounded-lg text-white text-center"
+            style={{ background: Colors.gradients.primary }}
+          >
+            <div className="text-center">
+              <span>Dashboard by {preparedBy}</span>
+            </div>
           </div>
         </div>
+
+        {/* Loading overlay for when export is in progress */}
+        {isExporting && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl">
+              <div className="flex items-center">
+                <div className="mr-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                </div>
+                <p className="text-lg">Generating PDF...</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Configuration Panel */}
