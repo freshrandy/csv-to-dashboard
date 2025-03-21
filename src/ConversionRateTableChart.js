@@ -204,7 +204,7 @@ const ConversionRateChart = ({ metrics, colors }) => {
         </p>
       </div>
 
-      <div className="h-64">
+      <div className="h-96">
         {validData ? (
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart

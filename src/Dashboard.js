@@ -21,7 +21,6 @@ import AssessmentQualityIndicators from "./AssessmentQualityIndicators";
 
 // Chart components
 import StatsTable from "./StatsTable";
-import WeeklyProgressChart from "./WeeklyProgressChart";
 import ConversionRateChart from "./ConversionRateChart";
 import RegionalPerformanceComparison from "./RegionalPerformanceComparison";
 import StatsTableChart from "./StatsTableChart";

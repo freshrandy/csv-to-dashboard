@@ -13,7 +13,7 @@ import {
 /**
  * StatsTableChart Component
  * Chart that displays weekly metrics using pre-calculated data from metrics.js
- * 
+ *
  * @param {Object} props
  * @param {Object} props.metrics - Processed metrics object from metrics.js
  * @param {Object} props.colors - UI colors object
@@ -145,7 +145,7 @@ const StatsTableChart = ({ metrics, colors }) => {
         ))}
       </div>
 
-      <div className="h-64">
+      <div className="h-96">
         {validData ? (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
