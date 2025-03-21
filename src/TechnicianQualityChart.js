@@ -208,7 +208,7 @@ const TechnicianQualityChart = ({ cohortData }) => {
                       {(entry.value * 100).toFixed(0)}%
                       {count > 0 && (
                         <span className="text-gray-500 text-xs ml-1">
-                          ({count} scans)
+                          ({count} certificates)
                         </span>
                       )}
                     </>
