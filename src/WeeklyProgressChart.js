@@ -15,6 +15,7 @@ import Colors from "./Colors";
  * Weekly Progress Chart Component
  * Displays bar chart of weekly scan and installation activity with toggleable metrics
  * Uses the EXACT same calculation logic as metrics.js for consistency
+ * Height to be set to h-96 but something is blocking it. To investigate.
  */
 const WeeklyProgressChart = ({ rawData, metrics }) => {
   // State for chart data

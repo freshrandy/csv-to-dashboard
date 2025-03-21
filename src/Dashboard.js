@@ -164,8 +164,8 @@ const Dashboard = ({
           // Main components
           activityMetrics: true,
           statsTable: true,
-          weeklyProgress: false,
-          conversionRateChart: false,
+          weeklyProgress: true,
+          conversionRateChart: true,
           regionalPerformance: true,
           qualityIndicators: true,
           employeeTable: true,
