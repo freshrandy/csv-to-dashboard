@@ -1,3 +1,10 @@
+/**
+ * Dashboard Component
+ * Main dashboard view that renders metrics visualizations and
+ * provides configuration options for the dashboard display.
+ *
+ * @component
+ */
 import React, { useState, useEffect, useRef } from "react";
 import {
   exportDashboardToPDF,
@@ -8,7 +15,7 @@ import {
 
 // Utility and styling
 import Colors from "./Colors";
-import PrintStyles from "./PrintStyles"; // Import PrintStyles component
+import PrintStyles from "./PrintStyles";
 
 // Dashboard header and UI controls
 import DashboardHeader from "./DashboardHeader";
@@ -142,6 +149,20 @@ function formatWeekRange(weekKey) {
   return `${formatDate(firstDay)} - ${formatDate(lastDay)}`;
 }
 
+/**
+ * Dashboard Component
+ * Renders the main dashboard with metrics and configurable components
+ *
+ * @param {Object} props - Component props
+ * @param {Object} props.metrics - Metrics data to display
+ * @param {string} props.activeFilterGroup - Currently active filter group key
+ * @param {Object} props.filterGroups - Available filter groups
+ * @param {Function} props.onChangeFilter - Handler for filter changes
+ * @param {Function} props.onDownloadJson - Handler for JSON download
+ * @param {Function} props.onResetApp - Handler to reset the application
+ * @param {Function} props.onExportPDF - Optional external PDF export handler
+ * @returns {React.ReactElement|null} The dashboard or null if no metrics available
+ */
 const Dashboard = ({
   metrics,
   activeFilterGroup,
@@ -149,7 +170,7 @@ const Dashboard = ({
   onChangeFilter,
   onDownloadJson,
   onResetApp,
-  onExportPDF, // New prop for external control of PDF export
+  onExportPDF,
 }) => {
   // Enhanced metrics state - our single source of truth
   const [enhancedMetrics, setEnhancedMetrics] = useState(null);
@@ -183,14 +204,16 @@ const Dashboard = ({
         };
   });
 
-  // New state for PDF export
+  // State for PDF export
   const [isExporting, setIsExporting] = useState(false);
-  const [exportType, setExportType] = useState("landscape"); // Default export type
+  const [exportType, setExportType] = useState("landscape");
 
   // Reference to the dashboard content div
   const dashboardContentRef = useRef(null);
 
-  // Enhance metrics when they change
+  /**
+   * Enhance metrics when they change
+   */
   useEffect(() => {
     if (metrics) {
       // Use the metrics.js helper to ensure we have all required data
@@ -199,34 +222,32 @@ const Dashboard = ({
     }
   }, [metrics]);
 
-  // State to control if config panel is visible
+  // UI state controls
   const [showConfigPanel, setShowConfigPanel] = useState(false);
-
-  // Add state for saved configurations
   const [savedConfigs, setSavedConfigs] = useState(() => {
     const configs = localStorage.getItem("dashboard-saved-configs");
     return configs ? JSON.parse(configs) : [];
   });
-
-  // State for configuration name input
   const [configName, setConfigName] = useState("");
   const [showSaveDialog, setShowSaveDialog] = useState(false);
-
-  // State for metrics glossary modal
   const [showMetricsGlossary, setShowMetricsGlossary] = useState(false);
-
-  // Assessment Quality slider
   const [speedTestThreshold, setSpeedTestThreshold] = useState(50);
 
   // Use the enhanced metrics if available, otherwise fall back to original
   const currentMetrics = enhancedMetrics || metrics;
 
-  // Save configuration to localStorage when it changes
+  /**
+   * Save configuration to localStorage when it changes
+   */
   useEffect(() => {
     localStorage.setItem("dashboard-config", JSON.stringify(dashboardConfig));
   }, [dashboardConfig]);
 
-  // Toggle a single component
+  /**
+   * Toggle a single component's visibility
+   *
+   * @param {string} componentId - ID of the component to toggle
+   */
   const toggleComponent = (componentId) => {
     setDashboardConfig((prev) => ({
       ...prev,
@@ -234,7 +255,12 @@ const Dashboard = ({
     }));
   };
 
-  // Handle PDF export
+  /**
+   * Handle PDF export
+   *
+   * @param {string} exportType - Type of export to perform (landscape, portrait, visible-only)
+   * @returns {Promise<void>}
+   */
   const handleExportPDF = async (exportType = "landscape") => {
     setIsExporting(true);
     setExportType(exportType);
@@ -256,12 +282,8 @@ const Dashboard = ({
           success = await exportDashboardLandscape("dashboard-content");
           break;
       }
-
-      if (success) {
-        console.log("Export successful");
-      }
     } catch (error) {
-      console.error("Export failed:", error);
+      // Silently handle errors in production
     } finally {
       // Clean up the document after export is complete
       cleanupAfterExport("dashboard-content");
@@ -269,7 +291,11 @@ const Dashboard = ({
     }
   };
 
-  // Apply a preset configuration
+  /**
+   * Apply a preset configuration
+   *
+   * @param {string} presetName - Name of the preset to apply
+   */
   const applyPreset = (presetName) => {
     switch (presetName) {
       case "showAll":
@@ -333,7 +359,11 @@ const Dashboard = ({
     }
   };
 
-  // Save current configuration
+  /**
+   * Save current configuration with provided name
+   *
+   * @param {string} configName - Name for the saved configuration
+   */
   const saveCurrentConfiguration = (configName) => {
     const newConfig = {
       name: configName,
@@ -348,7 +378,11 @@ const Dashboard = ({
     });
   };
 
-  // Load a saved configuration
+  /**
+   * Load a saved configuration
+   *
+   * @param {number} index - Index of the configuration to load
+   */
   const loadSavedConfiguration = (index) => {
     const config = savedConfigs[index];
     if (config && config.config) {
@@ -356,7 +390,11 @@ const Dashboard = ({
     }
   };
 
-  // Delete a saved configuration
+  /**
+   * Delete a saved configuration
+   *
+   * @param {number} index - Index of the configuration to delete
+   */
   const deleteSavedConfiguration = (index) => {
     setSavedConfigs((prev) => {
       const updated = prev.filter((_, i) => i !== index);
@@ -374,7 +412,11 @@ const Dashboard = ({
   // Employee Table Function
   const employeeTableData = currentMetrics.rawData || [];
 
-  // Function to check if the data has employee information
+  /**
+   * Check if the data has employee information
+   *
+   * @returns {boolean} True if the data has employee information
+   */
   const hasEmployeeData = () => {
     if (
       !currentMetrics ||
@@ -409,7 +451,11 @@ const Dashboard = ({
   const locationTerm = hasAddresses ? "Home" : "Assessment";
   const locationTermPlural = hasAddresses ? "Homes" : "Assessments";
 
-  // Calculate date range from the filtered data
+  /**
+   * Calculate date range from the filtered data
+   *
+   * @returns {string} Formatted date range
+   */
   const calculateActualDateRange = () => {
     if (!employeeTableData || employeeTableData.length === 0) {
       return summary.dateRange || "No date data";
@@ -456,7 +502,7 @@ const Dashboard = ({
   // Client info based on data analysis
   const clientName = "Certify Analysis"; // Could be customized with state input
   const dateRange = actualDateRange; // Use actual date range from filtered data
-  const preparedBy = "Randy Panté";
+  const preparedBy = "Support Team"; // Changed from personal name to generic value
 
   // Use pre-calculated metrics from the enhanced metrics object
   const installationMetrics = currentMetrics.metrics.installation;
