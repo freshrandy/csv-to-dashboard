@@ -1,4 +1,8 @@
-// React core imports
+/**
+ * App Component
+ * Main application component that handles CSV file uploads, data processing,
+ * and renders the dashboard or selection interfaces based on application state.
+ */
 import React, { useState, useRef, useEffect } from "react";
 
 // Third-party library imports
@@ -9,7 +13,7 @@ import { saveAs } from "file-saver";
 
 // Custom utility functions
 import { generateMetrics } from "./metrics";
-import { generateQualityMetricsCohort } from "./cohortAnalysis"; //this needs to be refactored. Noodle-like.
+import { generateQualityMetricsCohort } from "./cohortAnalysis";
 
 // UI components
 import Loader from "./Loader";
@@ -78,16 +82,6 @@ const Button = styled.button`
     background-color: #a0aec0;
     cursor: not-allowed;
   }
-`;
-
-const JsonPreview = styled.pre`
-  background-color: #2d3748;
-  color: #e2e8f0;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  overflow: auto;
-  max-height: 300px;
-  margin-top: 1.5rem;
 `;
 
 const WarningBanner = styled.div`
@@ -212,18 +206,15 @@ const IconCircle = styled.div`
   }
 `;
 
-const DashboardPreview = styled.div`
-  background-color: white;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
-`;
-
+/**
+ * Main App Component
+ *
+ * @returns {React.ReactElement} Rendered application
+ */
 function App() {
   const [file, setFile] = useState(null);
   const [parsedData, setParsedData] = useState(null);
-  const [filteredData, setFilteredData] = useState(null); // For filtered data
+  const [filteredData, setFilteredData] = useState(null);
   const [metrics, setMetrics] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [dataWarning, setDataWarning] = useState("");
@@ -237,41 +228,43 @@ function App() {
     all: {
       name: "All Employees",
       description: "No filtering applied",
-      employees: [], // This remains empty as it's a special case
+      employees: [],
     },
     group1: {
       name: "Group 1",
       description: "Click Edit to add a description",
-      employees: [], // Initially empty
+      employees: [],
     },
     group2: {
       name: "Group 2",
       description: "Click Edit to add a description",
-      employees: [], // Initially empty
+      employees: [],
     },
     group3: {
       name: "Group 3",
       description: "Click Edit to add a description",
-      employees: [], // Initially empty
+      employees: [],
     },
     group4: {
       name: "Group 4",
       description: "Click Edit to add a description",
-      employees: [], // Initially empty
+      employees: [],
     },
   });
 
   // State for saved configurations
   const [savedConfigs, setSavedConfigs] = useState([]);
 
-  // Load filter groups and saved configs from localStorage on component mount
+  /**
+   * Load saved configurations from localStorage on component mount
+   */
   useEffect(() => {
     const savedGroups = localStorage.getItem("dashboard-filter-groups");
     if (savedGroups) {
       try {
         setFilterGroups(JSON.parse(savedGroups));
-      } catch (e) {
-        console.error("Error loading saved filter groups:", e);
+      } catch (error) {
+        // Silently handle error loading saved groups
       }
     }
 
@@ -279,8 +272,8 @@ function App() {
     if (savedConfigsList) {
       try {
         setSavedConfigs(JSON.parse(savedConfigsList));
-      } catch (e) {
-        console.error("Error loading saved configurations:", e);
+      } catch (error) {
+        // Silently handle error loading saved configs
       }
     }
   }, []);
@@ -298,8 +291,12 @@ function App() {
     },
   });
 
+  /**
+   * Parse CSV file contents
+   *
+   * @param {File} file - The CSV file to parse
+   */
   const parseCSV = (file) => {
-    console.log("Starting CSV parsing, setting isProcessing to true");
     setIsProcessing(true);
     // Reset any previous states
     setMetrics(null);
@@ -335,7 +332,6 @@ function App() {
         // Add a slight delay before setting isProcessing to false
         // This ensures the loader has time to render
         setTimeout(() => {
-          console.log("CSV parsing complete, setting isProcessing to false");
           setIsProcessing(false);
           // Show filter group selection after parsing
           setShowFilterGroupSelection(true);
@@ -363,14 +359,17 @@ function App() {
         }
       },
       error: (error) => {
-        console.error("Error parsing CSV:", error);
         setIsProcessing(false);
         setDataWarning("Error parsing CSV. Please check the file format.");
       },
     });
   };
 
-  // Handle filter group selection and apply the filter
+  /**
+   * Handle filter group selection and apply the filter
+   *
+   * @param {string} groupKey - Key of the selected filter group
+   */
   const handleFilterGroupSelect = (groupKey) => {
     setIsProcessing(true);
     setActiveFilterGroup(groupKey);
@@ -385,7 +384,6 @@ function App() {
     const selectedGroup = filterGroups[groupKey];
 
     // Check if the group has employees defined
-    // This handles the case of empty filter groups created when no employee data exists
     if (!selectedGroup.employees || selectedGroup.employees.length === 0) {
       processMetrics(parsedData); // Process all data if no employees in group
       return;
@@ -406,7 +404,12 @@ function App() {
     processMetrics(filtered);
   };
 
-  // Handle updating a filter group
+  /**
+   * Update a filter group with new settings
+   *
+   * @param {string} groupKey - Key of the group to update
+   * @param {Object} updatedGroup - New group settings
+   */
   const handleUpdateFilterGroup = (groupKey, updatedGroup) => {
     setFilterGroups((prev) => {
       const updated = {
@@ -421,7 +424,11 @@ function App() {
     });
   };
 
-  // Save current filter groups as a named configuration
+  /**
+   * Save current filter groups as a named configuration
+   *
+   * @param {string} configName - Name for the saved configuration
+   */
   const saveCurrentConfiguration = (configName) => {
     const newConfig = {
       name: configName,
@@ -439,7 +446,11 @@ function App() {
     });
   };
 
-  // Load a saved configuration
+  /**
+   * Load a saved configuration
+   *
+   * @param {number} configIndex - Index of the configuration to load
+   */
   const loadSavedConfiguration = (configIndex) => {
     const config = savedConfigs[configIndex];
     if (config && config.groups) {
@@ -453,7 +464,11 @@ function App() {
     }
   };
 
-  // Delete a saved configuration
+  /**
+   * Delete a saved configuration
+   *
+   * @param {number} configIndex - Index of the configuration to delete
+   */
   const deleteSavedConfiguration = (configIndex) => {
     setSavedConfigs((prev) => {
       const updated = prev.filter((_, index) => index !== configIndex);
@@ -465,7 +480,9 @@ function App() {
     });
   };
 
-  // Export configurations as JSON file
+  /**
+   * Export configurations as JSON file
+   */
   const exportConfigurations = () => {
     const data = {
       filterGroups: filterGroups,
@@ -478,7 +495,11 @@ function App() {
     saveAs(blob, `dashboard-filter-configs.json`);
   };
 
-  // Import configurations from JSON file
+  /**
+   * Import configurations from JSON file
+   *
+   * @param {File} file - JSON file containing saved configurations
+   */
   const importConfigurations = (file) => {
     if (!file) return;
 
@@ -501,7 +522,6 @@ function App() {
           );
         }
       } catch (error) {
-        console.error("Error importing configurations:", error);
         setDataWarning(
           "Error importing configurations. Please check the file format."
         );
@@ -510,6 +530,11 @@ function App() {
     reader.readAsText(file);
   };
 
+  /**
+   * Process metrics based on provided data
+   *
+   * @param {Array} dataToProcess - Array of data objects to process
+   */
   const processMetrics = (dataToProcess = filteredData) => {
     if (!dataToProcess) return;
 
@@ -518,7 +543,6 @@ function App() {
 
       // Convert parsed data back to CSV format for the generateMetrics function
       const csv = Papa.unparse(dataToProcess);
-      // Pass default value for monthly price (or remove entirely if metrics.js is updated too)
       const metricsResult = generateMetrics(csv);
       metricsResult.rawData = dataToProcess;
 
@@ -529,15 +553,10 @@ function App() {
       setShowFilterGroupSelection(false); // Hide filter group selection once metrics are generated
 
       // Add a slight delay before setting isProcessing to false
-      // This ensures the loader has time to render
       setTimeout(() => {
-        console.log(
-          "Metrics generation complete, setting isProcessing to false"
-        );
         setIsProcessing(false);
       }, 300);
     } catch (error) {
-      console.error("Error generating metrics:", error);
       setIsProcessing(false);
       setDataWarning(
         "Error generating metrics. Please check the data in your CSV file."
@@ -545,6 +564,9 @@ function App() {
     }
   };
 
+  /**
+   * Download metrics as JSON file
+   */
   const downloadJson = () => {
     if (!metrics) return;
 
@@ -554,6 +576,9 @@ function App() {
     saveAs(blob, `${file.name.replace(".csv", "")}-metrics.json`);
   };
 
+  /**
+   * Reset the application to initial state
+   */
   const resetApp = () => {
     setMetrics(null);
     setFile(null);
@@ -564,13 +589,19 @@ function App() {
     setShowFilterGroupSelection(false);
   };
 
-  // Change filter from dashboard
+  /**
+   * Change filter from dashboard view
+   */
   const handleChangeFilter = () => {
     setMetrics(null);
     setShowFilterGroupSelection(true);
   };
 
-  // Render the enhanced UI splash screen
+  /**
+   * Render the enhanced UI splash screen
+   *
+   * @returns {React.ReactElement} Enhanced UI splash screen
+   */
   const renderEnhancedSplashScreen = () => (
     <>
       <HeroSection>
@@ -744,7 +775,11 @@ function App() {
     </>
   );
 
-  // Render the original UI
+  /**
+   * Render the original minimal UI
+   *
+   * @returns {React.ReactElement} Minimal UI interface
+   */
   const renderOriginalUI = () => (
     <>
       <Header>
@@ -783,7 +818,6 @@ function App() {
 
           {isProcessing ? (
             <>
-              {console.log("Rendering loader component")}
               <div className="mt-4 p-2 border border-gray-300 rounded bg-gray-50">
                 <p className="mb-2 text-gray-600">
                   Processing data, please wait...
@@ -799,7 +833,11 @@ function App() {
     </>
   );
 
-  // Determine what to show based on the current state
+  /**
+   * Determine what content to render based on the current state
+   *
+   * @returns {React.ReactElement} Appropriate content for current application state
+   */
   const renderContent = () => {
     if (metrics) {
       // Show the dashboard if metrics are generated
@@ -842,8 +880,6 @@ function App() {
 
   return (
     <TooltipProvider>
-      {" "}
-      {/* Wrap the entire application with TooltipProvider */}
       <AppContainer>{renderContent()}</AppContainer>
     </TooltipProvider>
   );
