@@ -20,6 +20,7 @@ import Loader from "./Loader";
 import Dashboard from "./Dashboard";
 import FilterGroupSelection from "./FilterGroupSelection";
 import { TooltipProvider } from "./TooltipContext";
+import ImprovedSplashScreen from "./ImprovedSplashScreen";
 import "./animations.css";
 
 // Styled components
@@ -92,118 +93,6 @@ const WarningBanner = styled.div`
   padding: 0.75rem 1rem;
   margin: 0.75rem 0;
   font-size: 0.875rem;
-`;
-
-// Enhanced splash screen styled components
-const HeroSection = styled.div`
-  text-align: center;
-  margin-bottom: 2rem;
-  padding: 3rem 1rem;
-  border-radius: 0.5rem;
-  background: linear-gradient(135deg, #58dbb9 0%, #0066ff 100%);
-  color: white;
-`;
-
-const HeroTitle = styled.h1`
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-`;
-
-const HeroSubtitle = styled.p`
-  font-size: 1.25rem;
-  opacity: 0.9;
-  margin-bottom: 2rem;
-`;
-
-const FeaturePill = styled.div`
-  display: inline-block;
-  background-color: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(4px);
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
-  margin: 0.25rem;
-  font-size: 0.875rem;
-`;
-
-const ContentGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  margin-bottom: 3rem;
-
-  @media (min-width: 768px) {
-    grid-template-columns: 1fr 1fr;
-  }
-`;
-
-const InstructionsPanel = styled.div`
-  background-color: white;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-`;
-
-const StepItem = styled.li`
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-`;
-
-const StepNumber = styled.div`
-  width: 2rem;
-  height: 2rem;
-  border-radius: 9999px;
-  background-color: #58dbb9;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  margin-right: 0.75rem;
-  flex-shrink: 0;
-`;
-
-const UploadPanel = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-const EnhancedDropzone = styled.div`
-  width: 100%;
-  height: 16rem;
-  border: 2px dashed;
-  border-color: ${(props) => (props.isDragActive ? "#3B82F6" : "#CBD5E0")};
-  border-radius: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  transition: all 0.2s;
-  cursor: pointer;
-  background-color: ${(props) => (props.isDragActive ? "#EBF5FF" : "#F8FAFC")};
-
-  &:hover {
-    border-color: #3b82f6;
-    background-color: #f1f5f9;
-  }
-`;
-
-const IconCircle = styled.div`
-  width: 4rem;
-  height: 4rem;
-  border-radius: 9999px;
-  background-color: ${(props) => (props.active ? "#BFDBFE" : "#E5E7EB")};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1rem;
-
-  svg {
-    color: ${(props) => (props.active ? "#3B82F6" : "#9CA3AF")};
-  }
 `;
 
 /**
@@ -598,181 +487,29 @@ function App() {
   };
 
   /**
+   * Handle files dropped on the ImprovedSplashScreen component
+   *
+   * @param {Array} files - The files dropped or selected
+   */
+  const handleDroppedFiles = (files) => {
+    if (files && files.length > 0) {
+      const selectedFile = files[0];
+      setFile(selectedFile);
+      parseCSV(selectedFile);
+    }
+  };
+
+  /**
    * Render the enhanced UI splash screen
    *
    * @returns {React.ReactElement} Enhanced UI splash screen
    */
   const renderEnhancedSplashScreen = () => (
-    <>
-      <HeroSection>
-        <HeroTitle>Certify Dashboard Generator</HeroTitle>
-        <HeroSubtitle>Generate metrics insights automatically.</HeroSubtitle>
-
-        <div>
-          <FeaturePill>
-            <span
-              role="img"
-              aria-label="chart"
-              style={{ marginRight: "0.5rem" }}
-            >
-              📊
-            </span>
-            Visual Metrics
-          </FeaturePill>
-          <FeaturePill>
-            <span
-              role="img"
-              aria-label="people"
-              style={{ marginRight: "0.5rem" }}
-            >
-              👥
-            </span>
-            Employee Performance
-          </FeaturePill>
-          <FeaturePill>
-            <span
-              role="img"
-              aria-label="insights"
-              style={{ marginRight: "0.5rem" }}
-            >
-              🔍
-            </span>
-            Data Insights
-          </FeaturePill>
-        </div>
-      </HeroSection>
-
-      <ContentGrid>
-        {/* Left panel - Instructions */}
-        <InstructionsPanel>
-          <h2
-            className="text-2xl font-semibold mb-4"
-            style={{ color: "#3D4550" }}
-          >
-            How It Works
-          </h2>
-
-          <ol className="space-y-4">
-            <StepItem>
-              <StepNumber>1</StepNumber>
-              <div>
-                <p className="font-medium">Upload your CSV file</p>
-                <p className="text-sm text-gray-600">
-                  Drag and drop or click to select a CSV file.
-                </p>
-              </div>
-            </StepItem>
-
-            <StepItem>
-              <StepNumber>2</StepNumber>
-              <div>
-                <p className="font-medium">Create filter groups</p>
-                <p className="text-sm text-gray-600">
-                  Organize employees into custom filter groups for your
-                  dashboard.
-                </p>
-              </div>
-            </StepItem>
-
-            <StepItem>
-              <StepNumber>3</StepNumber>
-              <div>
-                <p className="font-medium">View your dashboard</p>
-                <p className="text-sm text-gray-600">
-                  Get interactive visualizations and insights from your data.
-                </p>
-              </div>
-            </StepItem>
-          </ol>
-
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <h3 className="font-medium mb-2">Supported Data:</h3>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• CSV files with installation metrics.</li>
-              <li>• Headers should include Date, Status, Quality Score.</li>
-              <li>• Employee email fields for performance tracking.</li>
-            </ul>
-          </div>
-        </InstructionsPanel>
-
-        {/* Right panel - Upload */}
-        <UploadPanel>
-          <EnhancedDropzone {...getRootProps()} isDragActive={isDragActive}>
-            <input {...getInputProps()} />
-
-            <IconCircle active={isDragActive}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                />
-              </svg>
-            </IconCircle>
-
-            {isDragActive ? (
-              <p className="text-lg font-medium text-blue-600">
-                Drop your CSV file here...
-              </p>
-            ) : (
-              <>
-                <p className="text-lg font-medium mb-2">
-                  Drag and drop your CSV file here
-                </p>
-                <p className="text-gray-500">or click to browse your files</p>
-              </>
-            )}
-          </EnhancedDropzone>
-
-          {/* File Preview (if uploaded) */}
-          {file && (
-            <FileInfo>
-              <h3>File loaded: {file.name}</h3>
-              <p>Size: {(file.size / 1024).toFixed(2)} KB</p>
-              <p>
-                Records: {parsedData ? parsedData.length : "Calculating..."}
-              </p>
-
-              {dataWarning && (
-                <WarningBanner>
-                  <p>{dataWarning}</p>
-                </WarningBanner>
-              )}
-
-              {isProcessing ? (
-                <>
-                  <div className="mt-4 p-2 border border-gray-300 rounded bg-gray-50">
-                    <p className="mb-2 text-gray-600">
-                      Processing data, please wait...
-                    </p>
-                    <Loader />
-                  </div>
-                </>
-              ) : (
-                <></>
-              )}
-            </FileInfo>
-          )}
-        </UploadPanel>
-      </ContentGrid>
-
-      {/* Toggle Button */}
-      <div className="text-center mb-6">
-        <button
-          onClick={() => setShowEnhancedUI(false)}
-          className="text-sm text-gray-500 hover:text-gray-700"
-        >
-          Switch to minimal view
-        </button>
-      </div>
-    </>
+    <ImprovedSplashScreen
+      onFileSelect={handleDroppedFiles}
+      file={file}
+      isProcessing={isProcessing}
+    />
   );
 
   /**

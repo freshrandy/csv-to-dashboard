@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import ParticleBackground from "./ParticleBackground";
+import AnimatedFeaturePill from "./AnimatedFeaturePill";
+import "./animations.css";
 
 const ImprovedSplashScreen = ({ onFileSelect, file, isProcessing }) => {
   const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = React.createRef();
 
-  // Define colors from your existing color scheme
+  // Define colors from existing color scheme
   const colors = {
     teal: "#58DBB9",
     jade: "#4EBAA1",
@@ -56,29 +59,42 @@ const ImprovedSplashScreen = ({ onFileSelect, file, isProcessing }) => {
       {/* Hero Section */}
       <div className="text-center mb-8">
         <div
-          className="py-10 px-6 rounded-lg mb-6"
+          className="py-10 px-6 rounded-lg mb-6 relative overflow-hidden"
           style={{
             background: `linear-gradient(135deg, ${colors.teal} 0%, ${colors.electricBlue} 100%)`,
             opacity: 0.95,
           }}
         >
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Certify CSV Dashboard Generator
-          </h1>
-          <p className="text-xl text-white opacity-90 mb-6">
-            Transform your installation data into actionable insights
-          </p>
+          {/* Particle background */}
+          <ParticleBackground color="#ffffff" particleCount={40} speed={0.5} />
 
-          {/* Feature Pills */}
-          <div className="flex flex-wrap justify-center gap-3 mb-4">
-            <div className="bg-white bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-full text-white">
-              <span className="mr-2">📊</span> Visual Metrics
-            </div>
-            <div className="bg-white bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-full text-white">
-              <span className="mr-2">👥</span> Employee Performance
-            </div>
-            <div className="bg-white bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-full text-white">
-              <span className="mr-2">💰</span> Revenue Impact
+          <div className="relative z-10">
+            {" "}
+            {/* Ensure content is above particles */}
+            <h1 className="text-4xl font-bold text-white mb-4 fade-in">
+              Certify CSV Dashboard Tool
+            </h1>
+            <p className="text-xl text-white opacity-90 mb-6 fade-in-slow">
+              Transform your Certify certification data into actionable
+              insights.
+            </p>
+            {/* Animated Feature Pills */}
+            <div className="flex flex-wrap justify-center gap-3 mb-4">
+              <AnimatedFeaturePill
+                icon="📊"
+                text="Visual Metrics"
+                delay={0.1}
+              />
+              <AnimatedFeaturePill
+                icon="👥"
+                text="Employee Performance"
+                delay={0.2}
+              />
+              <AnimatedFeaturePill
+                icon="💰"
+                text="Conversion Rate Trends"
+                delay={0.3}
+              />
             </div>
           </div>
         </div>
@@ -96,7 +112,7 @@ const ImprovedSplashScreen = ({ onFileSelect, file, isProcessing }) => {
           </h2>
 
           <ol className="space-y-4">
-            <li className="flex items-start">
+            <li className="flex items-start stagger-item fade-in">
               <div
                 className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full mr-3"
                 style={{ backgroundColor: colors.teal }}
@@ -112,7 +128,7 @@ const ImprovedSplashScreen = ({ onFileSelect, file, isProcessing }) => {
               </div>
             </li>
 
-            <li className="flex items-start">
+            <li className="flex items-start stagger-item fade-in">
               <div
                 className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full mr-3"
                 style={{ backgroundColor: colors.teal }}
@@ -128,7 +144,7 @@ const ImprovedSplashScreen = ({ onFileSelect, file, isProcessing }) => {
               </div>
             </li>
 
-            <li className="flex items-start">
+            <li className="flex items-start stagger-item fade-in">
               <div
                 className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full mr-3"
                 style={{ backgroundColor: colors.teal }}
@@ -165,7 +181,7 @@ const ImprovedSplashScreen = ({ onFileSelect, file, isProcessing }) => {
               isDragActive
                 ? "border-blue-500 bg-blue-50"
                 : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
-            }`}
+            } ${isDragActive ? "pulse" : "hover:pulse"}`}
           >
             <input
               type="file"
@@ -177,7 +193,7 @@ const ImprovedSplashScreen = ({ onFileSelect, file, isProcessing }) => {
 
             {isDragActive ? (
               <>
-                <div className="w-16 h-16 mb-4 text-blue-500 flex items-center justify-center rounded-full bg-blue-100">
+                <div className="w-16 h-16 mb-4 text-blue-500 flex items-center justify-center rounded-full bg-blue-100 float">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="w-8 h-8"
@@ -225,7 +241,7 @@ const ImprovedSplashScreen = ({ onFileSelect, file, isProcessing }) => {
 
           {/* File Preview (if uploaded) */}
           {file && (
-            <div className="mt-6 w-full p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="mt-6 w-full p-4 bg-gray-50 rounded-lg border border-gray-200 fade-in">
               <div className="flex items-center">
                 <div className="mr-3 p-2 bg-green-100 rounded-full">
                   <svg
@@ -259,35 +275,12 @@ const ImprovedSplashScreen = ({ onFileSelect, file, isProcessing }) => {
               file && !isProcessing
                 ? "bg-blue-500 hover:bg-blue-600"
                 : "bg-gray-300 cursor-not-allowed"
-            }`}
+            } ${file && !isProcessing ? "shimmer" : ""}`}
             disabled={!file || isProcessing}
           >
             {isProcessing ? "Processing..." : "Generate Dashboard"}
           </button>
         </div>
-      </div>
-
-      {/* Bottom Section - Demo/Example */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2
-          className="text-xl font-semibold mb-4"
-          style={{ color: colors.ash }}
-        >
-          Dashboard Preview
-        </h2>
-
-        <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-          <img
-            src="/api/placeholder/800/450"
-            alt="Dashboard Preview"
-            className="w-full h-auto object-cover"
-          />
-        </div>
-
-        <p className="text-gray-600 text-sm text-center mt-4">
-          Example of a generated dashboard with quality metrics, performance
-          analysis, and regional breakdown
-        </p>
       </div>
     </div>
   );
