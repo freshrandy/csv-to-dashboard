@@ -502,7 +502,7 @@ const Dashboard = ({
   // Client info based on data analysis
   const clientName = "Certify Analysis"; // Could be customized with state input
   const dateRange = actualDateRange; // Use actual date range from filtered data
-  const preparedBy = "Support Team"; // Changed from personal name to generic value
+  const preparedBy = "RouteThis - Professional Services"; // Changed from personal name to generic value
 
   // Use pre-calculated metrics from the enhanced metrics object
   const installationMetrics = currentMetrics.metrics.installation;
