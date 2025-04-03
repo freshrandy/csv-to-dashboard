@@ -58,6 +58,11 @@ const ActivityMetrics = ({ metrics, config }) => {
       content:
         "The percentage of assessments that covered multiple floors. Multi-floor assessments are important for homes with more than one level.",
     },
+    multiCompleteHomes: { 
+      title: "Multiple Complete Visits", 
+      content:
+        "Number of unique addresses (including unit number) that have more than one 'Complete' assessment during the selected period.", // Content updated
+    },
   };
 
   // Extract data directly from the metrics object
@@ -96,12 +101,20 @@ const ActivityMetrics = ({ metrics, config }) => {
     return config[cardName];
   };
 
+  // Extract the updated metric value
+  const multiCompleteHomes = metrics?.summary?.multiCompleteHomes || 0; // Key and variable updated
+
   // Count how many cards are visible in each column to help with layout
   const getVisibleCardCount = (cards) => {
     return cards.filter((card) => shouldShowCard(card)).length;
   };
 
-  const column1Cards = ["totalScans", "uniqueVisits", "activeEmployees"];
+  const column1Cards = [
+    "totalScans",
+    "uniqueVisits",
+    "multiCompleteHomes",
+    "activeEmployees",
+  ];
   const column2Cards = ["conversionRate", "nodesInstalled", "nodesRecommended"];
   const column3Cards = ["installRatio", "avgRoomsTested", "multiFloorRate"];
 
@@ -188,6 +201,18 @@ const ActivityMetrics = ({ metrics, config }) => {
               colorScheme="primary"
               tooltipContent={tooltipContent.uniqueHomes.content}
               tooltipTitle={tooltipContent.uniqueHomes.title}
+            />
+          )}
+
+          {/* UPDATED Metric Card for Homes with Multiple COMPLETE Visits */}
+          {shouldShowCard("multiCompleteHomes") && ( 
+            <MetricCard
+              title="Multiple Complete Visits" 
+              value={multiCompleteHomes} 
+              subtitle="addresses with >1 complete assessment" 
+              colorScheme="secondary"
+              tooltipContent={tooltipContent.multiCompleteHomes.content} 
+              tooltipTitle={tooltipContent.multiCompleteHomes.title} 
             />
           )}
 
