@@ -445,6 +445,58 @@ function formatWeekRange(weekKey) {
 }
 
 /**
+ * Counts the number of unique addresses (including unit) that appear more than once.
+ * Counts the number of unique addresses (including unit) that have more than one assessment marked as "Complete".
+ * @param {Array} data - The parsed CSV data rows.
+ * @returns {number} The count of addresses with multiple "Complete" assessments.
+ */
+function countAddressesWithMultipleCompleteAssessments(data) {
+  // Skip if no data or no addresses
+  if (!data || data.length === 0) {
+    return 0;
+  }
+
+  // Create a map to count "Complete" occurrences for each unique address
+  const addressCompleteCount = new Map();
+
+  // Check if the 'Address' and 'Status' columns exist
+  const hasAddress = data[0] && "Address" in data[0];
+  const hasStatus = data[0] && "Status" in data[0];
+
+  if (!hasAddress || !hasStatus) {
+    console.warn(
+      "Address or Status column not found. Cannot count multiple complete assessments per address."
+    );
+    return 0; // Need both columns to proceed
+  }
+
+  // Count only "Complete" status records for each address+unit combination
+  data.forEach((row) => {
+    if (row.Address && row.Status === "Complete") {
+      // Create a unique key combining Address and Unit (if present)
+      const unitValue = row.Unit || ""; // Handle null/undefined/empty units consistently
+      const addressKey = `${row.Address}|${unitValue}`;
+
+      // Increment the count for this address
+      addressCompleteCount.set(
+        addressKey,
+        (addressCompleteCount.get(addressKey) || 0) + 1
+      );
+    }
+  });
+
+  // Count addresses that have more than one "Complete" assessment
+  let multipleCompleteCount = 0;
+  addressCompleteCount.forEach((count) => {
+    if (count > 1) {
+      multipleCompleteCount++;
+    }
+  });
+
+  return multipleCompleteCount;
+}
+
+/**
  * Generate installation metrics from CSV data
  * (Original function preserved for backward compatibility)
  * @param {string} csvData - CSV data as a string
@@ -754,12 +806,17 @@ export function generateMetrics(csvData, monthlyPrice = 14.99) {
   // Calculate floor assessments
   const floorAssessments = calculateFloorAssessments({ rawData: data });
 
+  // Calculate homes with multiple COMPLETE assessments
+  const homesWithMultipleCompleteAssessments =
+    countAddressesWithMultipleCompleteAssessments(data);
+
   // Construct the metrics object
   const metricsResult = {
     summary: {
       dateRange,
       totalEntries: data.length,
       uniqueHomes: uniqueAssessments.size,
+      multiCompleteHomes: homesWithMultipleCompleteAssessments, // Use new metric name
       statusDistribution: statusCounts,
       hasAddresses, // Flag to indicate if we have address data
     },

@@ -93,6 +93,23 @@ const ConfigurationPanel = ({
                 <span className="text-sm">Unique Homes</span>
               </div>
 
+              {/* Multiple Complete Visits */}
+              <div
+                className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
+                onClick={() => onToggleComponent("multiCompleteHomes")}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full mr-2 flex items-center justify-center ${
+                    config.multiCompleteHomes ? "bg-teal-500" : "bg-gray-300"
+                  }`}
+                >
+                  {config.multiCompleteHomes && (
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  )}
+                </div>
+                <span className="text-sm">Multiple Complete Visits</span>
+              </div>
+
               <div
                 className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
                 onClick={() => onToggleComponent("activeEmployees")}
