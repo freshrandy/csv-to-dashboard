@@ -201,7 +201,7 @@ const Dashboard = ({
           installRatio: true,
           avgRoomsTested: true,
           multiFloorRate: true,
-          multiCompleteHomes: true,
+          multiCompleteHomes: false,
         };
   });
 
@@ -503,7 +503,7 @@ const Dashboard = ({
   // Client info based on data analysis
   const clientName = "Certify Analysis"; // Could be customized with state input
   const dateRange = actualDateRange; // Use actual date range from filtered data
-  const preparedBy = "RouteThis - Professional Services"; // Changed from personal name to generic value
+  const preparedBy = "Randy Panté | RouteThis Professional Services";
 
   // Use pre-calculated metrics from the enhanced metrics object
   const installationMetrics = currentMetrics.metrics.installation;
