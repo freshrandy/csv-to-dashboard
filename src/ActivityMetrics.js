@@ -58,8 +58,8 @@ const ActivityMetrics = ({ metrics, config }) => {
       content:
         "The percentage of assessments that covered multiple floors. Multi-floor assessments are important for homes with more than one level.",
     },
-    multiCompleteHomes: { 
-      title: "Multiple Complete Visits", 
+    multiCompleteHomes: {
+      title: "Multiple Complete Visits",
       content:
         "Number of unique addresses (including unit number) that have more than one 'Complete' assessment during the selected period.", // Content updated
     },
@@ -112,8 +112,8 @@ const ActivityMetrics = ({ metrics, config }) => {
   const column1Cards = [
     "totalScans",
     "uniqueVisits",
-    "multiCompleteHomes",
     "activeEmployees",
+    "multiCompleteHomes",
   ];
   const column2Cards = ["conversionRate", "nodesInstalled", "nodesRecommended"];
   const column3Cards = ["installRatio", "avgRoomsTested", "multiFloorRate"];
@@ -204,18 +204,6 @@ const ActivityMetrics = ({ metrics, config }) => {
             />
           )}
 
-          {/* UPDATED Metric Card for Homes with Multiple COMPLETE Visits */}
-          {shouldShowCard("multiCompleteHomes") && ( 
-            <MetricCard
-              title="Multiple Complete Visits" 
-              value={multiCompleteHomes} 
-              subtitle="addresses with >1 complete assessment" 
-              colorScheme="secondary"
-              tooltipContent={tooltipContent.multiCompleteHomes.content} 
-              tooltipTitle={tooltipContent.multiCompleteHomes.title} 
-            />
-          )}
-
           {shouldShowCard("activeEmployees") && (
             <MetricCard
               title="Active Employees"
@@ -224,6 +212,18 @@ const ActivityMetrics = ({ metrics, config }) => {
               colorScheme="info"
               tooltipContent={tooltipContent.activeEmployees.content}
               tooltipTitle={tooltipContent.activeEmployees.title}
+            />
+          )}
+
+          {/* UPDATED Metric Card for Homes with Multiple COMPLETE Visits */}
+          {shouldShowCard("multiCompleteHomes") && (
+            <MetricCard
+              title="Multiple Complete Visits"
+              value={multiCompleteHomes}
+              subtitle="addresses with >1 complete assessment"
+              colorScheme="secondary"
+              tooltipContent={tooltipContent.multiCompleteHomes.content}
+              tooltipTitle={tooltipContent.multiCompleteHomes.title}
             />
           )}
 

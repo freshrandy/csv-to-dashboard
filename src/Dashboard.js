@@ -516,8 +516,8 @@ const Dashboard = ({
   // Get or calculate multi-floor assessment metrics
   const floorAssessments = currentMetrics.metrics.performance
     .floorAssessments || {
-    multiFloorPercentage: 35.0,
-    singleFloorPercentage: 65.0,
+    multiFloorPercentage: 0,
+    singleFloorPercentage: 0,
   };
 
   // Activity metrics - Use pre-calculated from enhanced metrics
