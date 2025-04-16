@@ -201,7 +201,6 @@ const Dashboard = ({
           installRatio: true,
           avgRoomsTested: true,
           multiFloorRate: true,
-          multiCompleteHomes: false,
         };
   });
 
