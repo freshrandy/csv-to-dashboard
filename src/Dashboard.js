@@ -201,7 +201,6 @@ const Dashboard = ({
           installRatio: true,
           avgRoomsTested: true,
           multiFloorRate: true,
-          multiCompleteHomes: true,
         };
   });
 
@@ -503,7 +502,7 @@ const Dashboard = ({
   // Client info based on data analysis
   const clientName = "Certify Analysis"; // Could be customized with state input
   const dateRange = actualDateRange; // Use actual date range from filtered data
-  const preparedBy = "RouteThis - Professional Services"; // Changed from personal name to generic value
+  const preparedBy = "Randy Panté | RouteThis Professional Services";
 
   // Use pre-calculated metrics from the enhanced metrics object
   const installationMetrics = currentMetrics.metrics.installation;
@@ -516,8 +515,8 @@ const Dashboard = ({
   // Get or calculate multi-floor assessment metrics
   const floorAssessments = currentMetrics.metrics.performance
     .floorAssessments || {
-    multiFloorPercentage: 35.0,
-    singleFloorPercentage: 65.0,
+    multiFloorPercentage: 0,
+    singleFloorPercentage: 0,
   };
 
   // Activity metrics - Use pre-calculated from enhanced metrics

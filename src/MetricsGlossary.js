@@ -28,13 +28,6 @@ const MetricsGlossary = ({ isOpen, onClose }) => {
         description:
           "Average number of unique locations assessed by each employee",
       },
-      {
-        name: "Multiple Complete Visits",
-        calculation:
-          'Count of unique addresses (including unit) with more than one assessment record where Status = "Complete"',
-        description:
-          "Number of distinct locations that received more than one completed assessment during the period.",
-      },
     ],
     installation: [
       {
