@@ -4,6 +4,12 @@
  */
 
 export const tooltipContent = {
+  // Installation Card
+  installationOverview: {
+    title: "Installation Overview",
+    content:
+      "This card shows the complete installation funnel from certification to recommendation to actual installation. The installation ratio indicates what percentage of recommended mesh nodes were actually installed, providing insight into recommendation acceptance.",
+  },
   // Activity Metrics
   uniqueVisits: {
     title: "Unique Homes/Assessments",
