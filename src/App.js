@@ -23,7 +23,7 @@ import { TooltipProvider } from "./TooltipContext";
 import ImprovedSplashScreen from "./ImprovedSplashScreen";
 import "./animations.css";
 
-// Styled components
+// Styled components (unchanged)
 const AppContainer = styled.div`
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   width: 100%;
@@ -97,8 +97,6 @@ const WarningBanner = styled.div`
 
 /**
  * Main App Component
- *
- * @returns {React.ReactElement} Rendered application
  */
 function App() {
   const [file, setFile] = useState(null);
@@ -112,32 +110,42 @@ function App() {
     useState(false);
   const [activeFilterGroup, setActiveFilterGroup] = useState(null);
 
-  // Initialize filter groups
+  // NEW: Updated filter groups structure to support multiple filter types
   const [filterGroups, setFilterGroups] = useState({
     all: {
-      name: "All Employees",
+      name: "All Data",
       description: "No filtering applied",
+      type: "all",
       employees: [],
+      expectedSpeeds: [],
     },
     group1: {
       name: "Group 1",
       description: "Click Edit to add a description",
+      type: "employee", // Default to employee filtering
       employees: [],
+      expectedSpeeds: [],
     },
     group2: {
       name: "Group 2",
       description: "Click Edit to add a description",
+      type: "employee",
       employees: [],
+      expectedSpeeds: [],
     },
     group3: {
       name: "Group 3",
       description: "Click Edit to add a description",
+      type: "employee",
       employees: [],
+      expectedSpeeds: [],
     },
     group4: {
       name: "Group 4",
       description: "Click Edit to add a description",
+      type: "employee",
       employees: [],
+      expectedSpeeds: [],
     },
   });
 
@@ -151,7 +159,21 @@ function App() {
     const savedGroups = localStorage.getItem("dashboard-filter-groups");
     if (savedGroups) {
       try {
-        setFilterGroups(JSON.parse(savedGroups));
+        const loadedGroups = JSON.parse(savedGroups);
+        // NEW: Ensure backward compatibility - add missing properties
+        const updatedGroups = Object.entries(loadedGroups).reduce(
+          (acc, [key, group]) => {
+            acc[key] = {
+              ...group,
+              type: group.type || "employee", // Default to employee if not specified
+              expectedSpeeds: group.expectedSpeeds || [], // Add expectedSpeeds if missing
+              employees: group.employees || [], // Ensure employees array exists
+            };
+            return acc;
+          },
+          {}
+        );
+        setFilterGroups(updatedGroups);
       } catch (error) {
         // Silently handle error loading saved groups
       }
@@ -182,8 +204,6 @@ function App() {
 
   /**
    * Parse CSV file contents
-   *
-   * @param {File} file - The CSV file to parse
    */
   const parseCSV = (file) => {
     setIsProcessing(true);
@@ -219,7 +239,6 @@ function App() {
         setParsedData(results.data);
 
         // Add a slight delay before setting isProcessing to false
-        // This ensures the loader has time to render
         setTimeout(() => {
           setIsProcessing(false);
           // Show filter group selection after parsing
@@ -255,9 +274,7 @@ function App() {
   };
 
   /**
-   * Handle filter group selection and apply the filter
-   *
-   * @param {string} groupKey - Key of the selected filter group
+   * NEW: Updated filter group selection and application logic
    */
   const handleFilterGroupSelect = (groupKey) => {
     setIsProcessing(true);
@@ -272,20 +289,38 @@ function App() {
     // Get the selected group
     const selectedGroup = filterGroups[groupKey];
 
-    // Check if the group has employees defined
-    if (!selectedGroup.employees || selectedGroup.employees.length === 0) {
-      processMetrics(parsedData); // Process all data if no employees in group
+    // Check if the group has any filter criteria defined
+    const hasEmployeeFilter =
+      selectedGroup.employees && selectedGroup.employees.length > 0;
+    const hasSpeedFilter =
+      selectedGroup.expectedSpeeds && selectedGroup.expectedSpeeds.length > 0;
+
+    if (!hasEmployeeFilter && !hasSpeedFilter) {
+      processMetrics(parsedData); // Process all data if no criteria in group
       return;
     }
 
-    // Filter the data to only include rows from selected employees
-    const filtered = parsedData.filter(
-      (row) =>
-        selectedGroup.employees.includes(
-          row["Employee Email"] || row["Employee"]
-        ) ||
-        (!row["Employee Email"] && !row["Employee"]) // Include rows without employee email
-    );
+    // NEW: Apply filters based on group type and criteria
+    let filtered = parsedData;
+
+    if (selectedGroup.type === "employee" && hasEmployeeFilter) {
+      // Filter by employees
+      filtered = parsedData.filter(
+        (row) =>
+          selectedGroup.employees.includes(
+            row["Employee Email"] || row["Employee"]
+          ) ||
+          (!row["Employee Email"] && !row["Employee"]) // Include rows without employee email
+      );
+    } else if (selectedGroup.type === "expectedSpeed" && hasSpeedFilter) {
+      // NEW: Filter by expected speeds
+      filtered = parsedData.filter((row) => {
+        const expectedSpeed = row["Expected Speed"];
+        return (
+          expectedSpeed && selectedGroup.expectedSpeeds.includes(expectedSpeed)
+        );
+      });
+    }
 
     setFilteredData(filtered);
 
@@ -294,16 +329,19 @@ function App() {
   };
 
   /**
-   * Update a filter group with new settings
-   *
-   * @param {string} groupKey - Key of the group to update
-   * @param {Object} updatedGroup - New group settings
+   * NEW: Updated to handle both employee and speed filter groups
    */
   const handleUpdateFilterGroup = (groupKey, updatedGroup) => {
     setFilterGroups((prev) => {
       const updated = {
         ...prev,
-        [groupKey]: updatedGroup,
+        [groupKey]: {
+          ...updatedGroup,
+          // Ensure all required properties exist
+          type: updatedGroup.type || "employee",
+          employees: updatedGroup.employees || [],
+          expectedSpeeds: updatedGroup.expectedSpeeds || [],
+        },
       };
 
       // Save to localStorage
@@ -315,8 +353,6 @@ function App() {
 
   /**
    * Save current filter groups as a named configuration
-   *
-   * @param {string} configName - Name for the saved configuration
    */
   const saveCurrentConfiguration = (configName) => {
     const newConfig = {
@@ -337,26 +373,36 @@ function App() {
 
   /**
    * Load a saved configuration
-   *
-   * @param {number} configIndex - Index of the configuration to load
    */
   const loadSavedConfiguration = (configIndex) => {
     const config = savedConfigs[configIndex];
     if (config && config.groups) {
-      setFilterGroups(config.groups);
+      // NEW: Ensure backward compatibility when loading old configs
+      const updatedGroups = Object.entries(config.groups).reduce(
+        (acc, [key, group]) => {
+          acc[key] = {
+            ...group,
+            type: group.type || "employee", // Default to employee if not specified
+            expectedSpeeds: group.expectedSpeeds || [], // Add expectedSpeeds if missing
+            employees: group.employees || [], // Ensure employees array exists
+          };
+          return acc;
+        },
+        {}
+      );
+
+      setFilterGroups(updatedGroups);
 
       // Save to localStorage
       localStorage.setItem(
         "dashboard-filter-groups",
-        JSON.stringify(config.groups)
+        JSON.stringify(updatedGroups)
       );
     }
   };
 
   /**
    * Delete a saved configuration
-   *
-   * @param {number} configIndex - Index of the configuration to delete
    */
   const deleteSavedConfiguration = (configIndex) => {
     setSavedConfigs((prev) => {
@@ -385,9 +431,7 @@ function App() {
   };
 
   /**
-   * Import configurations from JSON file
-   *
-   * @param {File} file - JSON file containing saved configurations
+   * NEW: Updated import to handle new filter group structure
    */
   const importConfigurations = (file) => {
     if (!file) return;
@@ -397,10 +441,24 @@ function App() {
       try {
         const data = JSON.parse(e.target.result);
         if (data.filterGroups) {
-          setFilterGroups(data.filterGroups);
+          // Ensure backward compatibility when importing
+          const updatedGroups = Object.entries(data.filterGroups).reduce(
+            (acc, [key, group]) => {
+              acc[key] = {
+                ...group,
+                type: group.type || "employee", // Default to employee if not specified
+                expectedSpeeds: group.expectedSpeeds || [], // Add expectedSpeeds if missing
+                employees: group.employees || [], // Ensure employees array exists
+              };
+              return acc;
+            },
+            {}
+          );
+
+          setFilterGroups(updatedGroups);
           localStorage.setItem(
             "dashboard-filter-groups",
-            JSON.stringify(data.filterGroups)
+            JSON.stringify(updatedGroups)
           );
         }
         if (data.savedConfigs) {
@@ -420,9 +478,7 @@ function App() {
   };
 
   /**
-   * Process metrics based on provided data
-   *
-   * @param {Array} dataToProcess - Array of data objects to process
+   * Process metrics based on provided data (unchanged)
    */
   const processMetrics = (dataToProcess = filteredData) => {
     if (!dataToProcess) return;
@@ -454,7 +510,7 @@ function App() {
   };
 
   /**
-   * Download metrics as JSON file
+   * Download metrics as JSON file (unchanged)
    */
   const downloadJson = () => {
     if (!metrics) return;
@@ -466,7 +522,7 @@ function App() {
   };
 
   /**
-   * Reset the application to initial state
+   * Reset the application to initial state (unchanged)
    */
   const resetApp = () => {
     setMetrics(null);
@@ -479,7 +535,7 @@ function App() {
   };
 
   /**
-   * Change filter from dashboard view
+   * Change filter from dashboard view (unchanged)
    */
   const handleChangeFilter = () => {
     setMetrics(null);
@@ -487,9 +543,7 @@ function App() {
   };
 
   /**
-   * Handle files dropped on the ImprovedSplashScreen component
-   *
-   * @param {Array} files - The files dropped or selected
+   * Handle files dropped on the ImprovedSplashScreen component (unchanged)
    */
   const handleDroppedFiles = (files) => {
     if (files && files.length > 0) {
@@ -500,9 +554,7 @@ function App() {
   };
 
   /**
-   * Render the enhanced UI splash screen
-   *
-   * @returns {React.ReactElement} Enhanced UI splash screen
+   * Render the enhanced UI splash screen (unchanged)
    */
   const renderEnhancedSplashScreen = () => (
     <ImprovedSplashScreen
@@ -513,9 +565,7 @@ function App() {
   );
 
   /**
-   * Render the original minimal UI
-   *
-   * @returns {React.ReactElement} Minimal UI interface
+   * Render the original minimal UI (unchanged)
    */
   const renderOriginalUI = () => (
     <>
@@ -571,9 +621,7 @@ function App() {
   );
 
   /**
-   * Determine what content to render based on the current state
-   *
-   * @returns {React.ReactElement} Appropriate content for current application state
+   * Determine what content to render based on the current state (unchanged)
    */
   const renderContent = () => {
     if (metrics) {

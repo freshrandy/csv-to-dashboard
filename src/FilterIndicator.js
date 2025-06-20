@@ -23,12 +23,42 @@ const FilterIndicator = ({ activeFilter, filterGroups, onChangeFilter }) => {
     return namePart;
   };
 
-  // Get employee names (limit to first 3 plus a count for the rest)
-  const employeeCount = filterInfo.employees?.length || 0;
-  const employeeNames = (filterInfo.employees || [])
-    .slice(0, 3)
-    .map(formatEmployeeName);
-  const additionalCount = Math.max(0, employeeCount - 3);
+  // NEW: Get filter content based on filter type
+  const getFilterContent = () => {
+    if (filterInfo.type === "expectedSpeed") {
+      // Handle Expected Speed filter
+      const speedCount = filterInfo.expectedSpeeds?.length || 0;
+      const speedList = (filterInfo.expectedSpeeds || [])
+        .slice(0, 3)
+        .map((speed) => `${speed} Mbps`);
+      const additionalCount = Math.max(0, speedCount - 3);
+
+      return {
+        count: speedCount,
+        items: speedList,
+        additionalCount: additionalCount,
+        itemType: "speed plan",
+        itemTypePlural: "speed plans",
+      };
+    } else {
+      // Handle Employee filter (existing logic)
+      const employeeCount = filterInfo.employees?.length || 0;
+      const employeeNames = (filterInfo.employees || [])
+        .slice(0, 3)
+        .map(formatEmployeeName);
+      const additionalCount = Math.max(0, employeeCount - 3);
+
+      return {
+        count: employeeCount,
+        items: employeeNames,
+        additionalCount: additionalCount,
+        itemType: "employee",
+        itemTypePlural: "employees",
+      };
+    }
+  };
+
+  const filterContent = getFilterContent();
 
   return (
     <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
@@ -56,16 +86,33 @@ const FilterIndicator = ({ activeFilter, filterGroups, onChangeFilter }) => {
               <span className="font-medium">{filterInfo.name}:</span>{" "}
               {filterInfo.description}
             </p>
-            {employeeCount > 0 ? (
+            {filterContent.count > 0 ? (
               <p className="mt-1 text-xs">
-                Showing data for {employeeCount}{" "}
-                {employeeCount === 1 ? "employee" : "employees"}:
-                {employeeNames.join(", ")}
-                {additionalCount > 0 ? ` and ${additionalCount} more` : ""}
+                {/* NEW: Updated to show filter type badge */}
+                <span
+                  className={`inline-block px-2 py-1 text-xs rounded-full mr-2 ${
+                    filterInfo.type === "expectedSpeed"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-blue-100 text-blue-800"
+                  }`}
+                >
+                  {filterInfo.type === "expectedSpeed"
+                    ? "Speed Filter"
+                    : "Employee Filter"}
+                </span>
+                Showing data for {filterContent.count}{" "}
+                {filterContent.count === 1
+                  ? filterContent.itemType
+                  : filterContent.itemTypePlural}
+                :{" " + filterContent.items.join(", ")}
+                {filterContent.additionalCount > 0
+                  ? ` and ${filterContent.additionalCount} more`
+                  : ""}
               </p>
             ) : (
               <p className="mt-1 text-xs text-yellow-600">
-                This group has no employees selected. All data is being shown.
+                This group has no {filterContent.itemTypePlural} selected. All
+                data is being shown.
               </p>
             )}
           </div>

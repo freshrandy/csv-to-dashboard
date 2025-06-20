@@ -21,25 +21,50 @@ const FilterGroupSelection = ({
   const [editingDescription, setEditingDescription] = useState(false);
   const [newDescription, setNewDescription] = useState("");
   const [selectedEmployees, setSelectedEmployees] = useState({});
+  const [selectedSpeeds, setSelectedSpeeds] = useState({}); // NEW: For speed filtering
+  const [filterType, setFilterType] = useState("employee"); // NEW: Track current filter type
   const [showMenu, setShowMenu] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [configName, setConfigName] = useState("");
   const [employees, setEmployees] = useState([]);
+  const [expectedSpeeds, setExpectedSpeeds] = useState([]); // NEW: Available speeds
   const [hasEmployeeData, setHasEmployeeData] = useState(true);
   const fileInputRef = React.useRef(null);
   const [employeeSortOption, setEmployeeSortOption] = useState("scans");
 
-  // Determine if data has employee information
+  // NEW: Extract unique expected speeds from data
   useEffect(() => {
     if (parsedData && parsedData.length > 0) {
-      // Check for the presence of an "Employee Email" column with valid data
+      // Extract unique expected speeds
+      const speedSet = new Set();
+      parsedData.forEach((row) => {
+        if (
+          row["Expected Speed"] &&
+          typeof row["Expected Speed"] === "number"
+        ) {
+          speedSet.add(row["Expected Speed"]);
+        }
+      });
+
+      // Convert to sorted array
+      const speedArray = Array.from(speedSet)
+        .sort((a, b) => a - b)
+        .map((speed) => ({
+          value: speed,
+          label: `${speed} Mbps`,
+          count: parsedData.filter((row) => row["Expected Speed"] === speed)
+            .length,
+        }));
+
+      setExpectedSpeeds(speedArray);
+
+      // Existing employee extraction logic remains the same...
       const hasEmployeeEmailColumn = parsedData.some(
         (row) =>
           row.hasOwnProperty("Employee Email") || row.hasOwnProperty("Employee")
       );
 
-      // Check if there are actual employee emails in the data
       const hasEmployeeValues = parsedData.some((row) => {
         const email = row["Employee Email"] || row["Employee"];
         return (
@@ -49,7 +74,6 @@ const FilterGroupSelection = ({
         );
       });
 
-      // Set state based on results
       setHasEmployeeData(hasEmployeeEmailColumn && hasEmployeeValues);
 
       if (!hasEmployeeEmailColumn || !hasEmployeeValues) {
@@ -57,7 +81,7 @@ const FilterGroupSelection = ({
         return;
       }
 
-      // Extract unique employee emails from data
+      // Employee extraction logic (unchanged)...
       const employeeSet = new Set();
       parsedData.forEach((row) => {
         const email = row["Employee Email"] || row["Employee"];
@@ -70,14 +94,11 @@ const FilterGroupSelection = ({
         }
       });
 
-      // Convert to array of employee objects
       const employeeArray = Array.from(employeeSet).map((email) => {
-        // Get count of entries for this employee
         const count = parsedData.filter(
           (row) => row["Employee Email"] === email || row["Employee"] === email
         ).length;
 
-        // Format display name
         const displayName = formatEmployeeName(email);
 
         return {
@@ -87,39 +108,38 @@ const FilterGroupSelection = ({
         };
       });
 
-      // Sort by entry count (most active first)
       employeeArray.sort((a, b) => b.count - a.count);
-
       setEmployees(employeeArray);
     }
   }, [parsedData]);
 
-  // Sort employees based on selected option
-  const sortedEmployees = React.useMemo(() => {
-    const employeeArray = [...employees];
-
-    switch (employeeSortOption) {
-      case "alphabetical":
-        return employeeArray.sort((a, b) =>
-          a.displayName.localeCompare(b.displayName)
-        );
-      case "certifications":
-      default:
-        return employeeArray.sort((a, b) => b.count - a.count);
-    }
-  }, [employees, employeeSortOption]);
-
-  // Set initial selections when editing a group
+  // NEW: Set initial selections when editing a group (handle both employee and speed)
   useEffect(() => {
     if (editingGroup) {
       const group = filterGroups[editingGroup];
-      const initialSelection = {};
+
+      // Set filter type based on group type
+      if (group && group.type) {
+        setFilterType(group.type);
+      }
+
+      // Set employee selections
+      const initialEmployeeSelection = {};
       if (group && group.employees) {
         group.employees.forEach((email) => {
-          initialSelection[email] = true;
+          initialEmployeeSelection[email] = true;
         });
       }
-      setSelectedEmployees(initialSelection);
+      setSelectedEmployees(initialEmployeeSelection);
+
+      // NEW: Set speed selections
+      const initialSpeedSelection = {};
+      if (group && group.expectedSpeeds) {
+        group.expectedSpeeds.forEach((speed) => {
+          initialSpeedSelection[speed] = true;
+        });
+      }
+      setSelectedSpeeds(initialSpeedSelection);
 
       if (group && group.description) {
         setNewDescription(group.description);
@@ -127,7 +147,7 @@ const FilterGroupSelection = ({
     }
   }, [editingGroup, filterGroups]);
 
-  // Format employee name from email
+  // Format employee name from email (unchanged)
   const formatEmployeeName = (email) => {
     if (!email) return "Unknown";
 
@@ -143,27 +163,37 @@ const FilterGroupSelection = ({
     return namePart;
   };
 
-  // Start editing a group
+  // Start editing a group (unchanged)
   const startEditing = (groupKey) => {
     if (groupKey === "all") return;
     setEditingGroup(groupKey);
   };
 
-  // Save the current group edits
+  // NEW: Save the current group edits (updated for multi-type support)
   const saveGroup = () => {
     if (!editingGroup) return;
 
-    // Get all selected employee emails
-    const selectedEmails = Object.keys(selectedEmployees).filter(
-      (email) => selectedEmployees[email]
-    );
-
-    // Update the group
-    const updatedGroup = {
+    let updatedGroup = {
       ...filterGroups[editingGroup],
-      employees: selectedEmails,
       description: newDescription || "No description provided",
+      type: filterType, // NEW: Store the filter type
     };
+
+    if (filterType === "employee") {
+      // Get all selected employee emails
+      const selectedEmails = Object.keys(selectedEmployees).filter(
+        (email) => selectedEmployees[email]
+      );
+      updatedGroup.employees = selectedEmails;
+      updatedGroup.expectedSpeeds = []; // Clear speeds when using employee filter
+    } else if (filterType === "expectedSpeed") {
+      // Get all selected speeds
+      const selectedSpeedValues = Object.keys(selectedSpeeds)
+        .filter((speed) => selectedSpeeds[speed])
+        .map((speed) => parseInt(speed));
+      updatedGroup.expectedSpeeds = selectedSpeedValues;
+      updatedGroup.employees = []; // Clear employees when using speed filter
+    }
 
     onUpdateFilterGroup(editingGroup, updatedGroup);
 
@@ -172,7 +202,15 @@ const FilterGroupSelection = ({
     setEditingDescription(false);
   };
 
-  // Toggle employee selection
+  // NEW: Toggle speed selection
+  const toggleSpeed = (speed) => {
+    setSelectedSpeeds((prev) => ({
+      ...prev,
+      [speed]: !prev[speed],
+    }));
+  };
+
+  // Toggle employee selection (unchanged)
   const toggleEmployee = (email) => {
     setSelectedEmployees((prev) => ({
       ...prev,
@@ -180,12 +218,31 @@ const FilterGroupSelection = ({
     }));
   };
 
-  // Count selected employees
+  // NEW: Count selected speeds
+  const getSelectedSpeedCount = () => {
+    return Object.values(selectedSpeeds).filter(Boolean).length;
+  };
+
+  // Count selected employees (unchanged)
   const getSelectedCount = () => {
     return Object.values(selectedEmployees).filter(Boolean).length;
   };
 
-  // Select all employees
+  // NEW: Select all speeds
+  const selectAllSpeeds = () => {
+    const newSelected = {};
+    expectedSpeeds.forEach((speed) => {
+      newSelected[speed.value] = true;
+    });
+    setSelectedSpeeds(newSelected);
+  };
+
+  // NEW: Clear all speed selections
+  const clearSpeedSelections = () => {
+    setSelectedSpeeds({});
+  };
+
+  // Select all employees (unchanged)
   const selectAllEmployees = () => {
     const newSelected = {};
     sortedEmployees.forEach((emp) => {
@@ -194,12 +251,12 @@ const FilterGroupSelection = ({
     setSelectedEmployees(newSelected);
   };
 
-  // Clear all employee selections
+  // Clear all employee selections (unchanged)
   const clearEmployeeSelections = () => {
     setSelectedEmployees({});
   };
 
-  // Handle file import
+  // Handle file import (unchanged)
   const handleFileUpload = (event) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -208,7 +265,22 @@ const FilterGroupSelection = ({
     setShowMenu(false);
   };
 
-  // Render the no employee data view
+  // Sort employees based on selected option (unchanged)
+  const sortedEmployees = React.useMemo(() => {
+    const employeeArray = [...employees];
+
+    switch (employeeSortOption) {
+      case "alphabetical":
+        return employeeArray.sort((a, b) =>
+          a.displayName.localeCompare(b.displayName)
+        );
+      case "certifications":
+      default:
+        return employeeArray.sort((a, b) => b.count - a.count);
+    }
+  }, [employees, employeeSortOption]);
+
+  // Render the no employee data view (unchanged)
   const renderNoEmployeeDataView = () => (
     <div>
       <div className="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
@@ -288,6 +360,157 @@ const FilterGroupSelection = ({
     </div>
   );
 
+  // NEW: Render expected speed selection interface
+  const renderSpeedSelection = () => (
+    <div>
+      <div className="flex justify-between items-center mb-3">
+        <div className="text-sm text-gray-600">
+          Select expected speeds for this group
+        </div>
+        <div className="flex space-x-2">
+          <button
+            className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+            onClick={selectAllSpeeds}
+          >
+            Select All
+          </button>
+          <button
+            className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
+            onClick={clearSpeedSelections}
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-md p-2 mb-4">
+        <div className="space-y-2">
+          {expectedSpeeds.map((speed) => (
+            <div
+              key={speed.value}
+              className={`p-2 rounded-md cursor-pointer transition-colors ${
+                selectedSpeeds[speed.value]
+                  ? "bg-blue-50 border border-blue-200"
+                  : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
+              }`}
+              onClick={() => toggleSpeed(speed.value)}
+            >
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={selectedSpeeds[speed.value] || false}
+                  onChange={() => toggleSpeed(speed.value)}
+                  className="h-4 w-4 text-blue-600 rounded mr-2"
+                />
+                <div>
+                  <div className="font-medium text-sm">{speed.label}</div>
+                </div>
+                <div className="ml-auto text-xs text-gray-500">
+                  {speed.count} assessments
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-gray-600">
+          {getSelectedSpeedCount()} selected
+        </div>
+        <button
+          className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+          onClick={saveGroup}
+        >
+          Save Group
+        </button>
+      </div>
+    </div>
+  );
+
+  // NEW: Render employee selection interface (extracted from existing code)
+  const renderEmployeeSelection = () => (
+    <div>
+      <div className="flex justify-between items-center mb-3">
+        <div className="text-sm text-gray-600">
+          Select employees for this group
+        </div>
+        <div className="flex space-x-2">
+          <div className="flex items-center">
+            <label className="mr-2 text-sm text-gray-600">Sort by:</label>
+            <select
+              value={employeeSortOption}
+              onChange={(e) => setEmployeeSortOption(e.target.value)}
+              className="p-1 text-xs border border-gray-300 rounded"
+            >
+              <option value="scans">Most Certifications</option>
+              <option value="alphabetical">Alphabetical</option>
+            </select>
+          </div>
+
+          <button
+            className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+            onClick={selectAllEmployees}
+          >
+            Select All
+          </button>
+          <button
+            className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
+            onClick={clearEmployeeSelections}
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-md p-2 mb-4">
+        <div className="space-y-2">
+          {sortedEmployees.map((employee) => (
+            <div
+              key={employee.email}
+              className={`p-2 rounded-md cursor-pointer transition-colors ${
+                selectedEmployees[employee.email]
+                  ? "bg-blue-50 border border-blue-200"
+                  : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
+              }`}
+              onClick={() => toggleEmployee(employee.email)}
+            >
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={selectedEmployees[employee.email] || false}
+                  onChange={() => toggleEmployee(employee.email)}
+                  className="h-4 w-4 text-blue-600 rounded mr-2"
+                />
+                <div>
+                  <div className="font-medium text-sm">
+                    {employee.displayName}
+                  </div>
+                  <div className="text-xs text-gray-500">{employee.email}</div>
+                </div>
+                <div className="ml-auto text-xs text-gray-500">
+                  {employee.count} certifications
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-gray-600">
+          {getSelectedCount()} selected
+        </div>
+        <button
+          className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+          onClick={saveGroup}
+        >
+          Save Group
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
       {/* Header section with title and save/load menu */}
@@ -320,7 +543,7 @@ const FilterGroupSelection = ({
               Save/Load Groups
             </button>
 
-            {/* Dropdown menu */}
+            {/* Dropdown menu (unchanged) */}
             {showMenu && (
               <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200">
                 <div className="p-2">
@@ -444,7 +667,7 @@ const FilterGroupSelection = ({
             <div className="mb-4 p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
                 Choose a filter group or edit a group to customize which
-                employees are included.
+                employees or expected speeds are included.
               </p>
             </div>
 
@@ -468,13 +691,14 @@ const FilterGroupSelection = ({
                     />
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium">All Employees</div>
+                    <div className="font-medium">All Data</div>
                     <div className="text-xs text-gray-500">
-                      Show data from all employees
+                      Show data from all employees and speed plans
                     </div>
                   </div>
                   <div className="text-blue-600 text-sm font-medium">
-                    {employees.length} employees
+                    {employees.length} employees, {expectedSpeeds.length} speed
+                    plans
                   </div>
                 </div>
               </div>
@@ -482,46 +706,79 @@ const FilterGroupSelection = ({
               {/* Filter group options */}
               {Object.entries(filterGroups)
                 .filter(([key]) => key !== "all")
-                .map(([key, group]) => (
-                  <div
-                    key={key}
-                    className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                      selectedGroup === key
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                    onClick={() => setSelectedGroup(key)}
-                  >
-                    <div className="flex items-center">
-                      <div className="mr-3">
-                        <input
-                          type="radio"
-                          checked={selectedGroup === key}
-                          onChange={() => setSelectedGroup(key)}
-                          className="h-4 w-4 text-blue-600"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium">{group.name}</div>
-                        <div className="text-xs text-gray-500">
-                          {group.description}
+                .map(([key, group]) => {
+                  // NEW: Display different info based on filter type
+                  const getGroupInfo = () => {
+                    if (group.type === "expectedSpeed") {
+                      return {
+                        count: group.expectedSpeeds?.length || 0,
+                        label: "speed plans",
+                      };
+                    } else {
+                      return {
+                        count: group.employees?.length || 0,
+                        label: "employees",
+                      };
+                    }
+                  };
+
+                  const groupInfo = getGroupInfo();
+
+                  return (
+                    <div
+                      key={key}
+                      className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                        selectedGroup === key
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => setSelectedGroup(key)}
+                    >
+                      <div className="flex items-center">
+                        <div className="mr-3">
+                          <input
+                            type="radio"
+                            checked={selectedGroup === key}
+                            onChange={() => setSelectedGroup(key)}
+                            className="h-4 w-4 text-blue-600"
+                          />
                         </div>
+                        <div className="flex-1">
+                          <div className="flex items-center">
+                            <div className="font-medium">{group.name}</div>
+                            {/* NEW: Show filter type badge */}
+                            <span
+                              className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                group.type === "expectedSpeed"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-blue-100 text-blue-800"
+                              }`}
+                            >
+                              {group.type === "expectedSpeed"
+                                ? "Speed"
+                                : "Employee"}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {group.description}
+                          </div>
+                        </div>
+                        <div className="text-blue-600 text-sm font-medium">
+                          {groupInfo.count} {groupInfo.label}
+                        </div>
+                        <button
+                          className="ml-2 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEditing(key);
+                          }}
+                        >
+                          Edit
+                        </button>
                       </div>
-                      <div className="text-blue-600 text-sm font-medium">
-                        {group.employees?.length || 0} employees
-                      </div>
-                      <button
-                        className="ml-2 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startEditing(key);
-                        }}
-                      >
-                        Edit
-                      </button>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
 
             {/* Generate Dashboard Button */}
@@ -579,15 +836,15 @@ const FilterGroupSelection = ({
                 />
               </svg>
               <h3 className="text-lg font-medium text-gray-700 mb-2">
-                Employee Filter Groups
+                Filter Groups
               </h3>
               <p className="text-sm text-gray-500 mb-4">
                 Create custom filter groups by selecting the "Edit" button next
                 to any group.
               </p>
               <p className="text-sm text-gray-600">
-                Each group starts empty. Add employees and a custom description
-                to organize your dashboard views.
+                Each group can filter by employees or expected speeds. Add items
+                and a custom description to organize your dashboard views.
               </p>
             </div>
           </div>
@@ -608,6 +865,37 @@ const FilterGroupSelection = ({
             >
               Cancel
             </button>
+          </div>
+
+          {/* NEW: Filter Type Selection */}
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Filter Type
+            </label>
+            <div className="flex space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="filterType"
+                  value="employee"
+                  checked={filterType === "employee"}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="h-4 w-4 text-blue-600"
+                />
+                <span className="ml-2 text-sm">Employee</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="filterType"
+                  value="expectedSpeed"
+                  checked={filterType === "expectedSpeed"}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="h-4 w-4 text-blue-600"
+                />
+                <span className="ml-2 text-sm">Expected Speed</span>
+              </label>
+            </div>
           </div>
 
           {/* Description editing */}
@@ -661,91 +949,14 @@ const FilterGroupSelection = ({
             )}
           </div>
 
-          <div className="flex justify-between items-center mb-3">
-            <div className="text-sm text-gray-600">
-              Select employees for this group
-            </div>
-            <div className="flex space-x-2">
-              {/* Sorting dropdown */}
-              <div className="flex items-center">
-                <label className="mr-2 text-sm text-gray-600">Sort by:</label>
-                <select
-                  value={employeeSortOption}
-                  onChange={(e) => setEmployeeSortOption(e.target.value)}
-                  className="p-1 text-xs border border-gray-300 rounded"
-                >
-                  <option value="scans">Most Certifications</option>
-                  <option value="alphabetical">Alphabetical</option>
-                </select>
-              </div>
-
-              <button
-                className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
-                onClick={selectAllEmployees}
-              >
-                Select All
-              </button>
-              <button
-                className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
-                onClick={clearEmployeeSelections}
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-
-          {/* Employee selection list */}
-          <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-md p-2 mb-4">
-            <div className="space-y-2">
-              {sortedEmployees.map((employee) => (
-                <div
-                  key={employee.email}
-                  className={`p-2 rounded-md cursor-pointer transition-colors ${
-                    selectedEmployees[employee.email]
-                      ? "bg-blue-50 border border-blue-200"
-                      : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
-                  }`}
-                  onClick={() => toggleEmployee(employee.email)}
-                >
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedEmployees[employee.email] || false}
-                      onChange={() => toggleEmployee(employee.email)}
-                      className="h-4 w-4 text-blue-600 rounded mr-2"
-                    />
-                    <div>
-                      <div className="font-medium text-sm">
-                        {employee.displayName}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {employee.email}
-                      </div>
-                    </div>
-                    <div className="ml-auto text-xs text-gray-500">
-                      {employee.count} certifications
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-600">
-              {getSelectedCount()} selected
-            </div>
-            <button
-              className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
-              onClick={saveGroup}
-            >
-              Save Group
-            </button>
-          </div>
+          {/* NEW: Conditional rendering based on filter type */}
+          {filterType === "employee"
+            ? renderEmployeeSelection()
+            : renderSpeedSelection()}
         </div>
       )}
 
-      {/* Save Configuration Dialog */}
+      {/* Save Configuration Dialog (unchanged) */}
       {saveDialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -819,7 +1030,7 @@ const FilterGroupSelection = ({
         </div>
       )}
 
-      {/* Load Configuration Dialog */}
+      {/* Load Configuration Dialog (unchanged) */}
       {loadDialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
