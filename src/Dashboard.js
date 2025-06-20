@@ -40,6 +40,9 @@ import EmployeePerformanceTable from "./EmployeePerformanceTable";
 // Import the enhanced metrics helper functions
 import { ensureMetricsFormat } from "./metrics";
 
+// New Installation Card
+import InstallationOverviewCard from "./InstallationOverviewCard";
+
 /**
  * Gets the ISO week number for a date
  * Follows the ISO 8601 standard where weeks start on Monday and the first week
@@ -181,6 +184,9 @@ const Dashboard = ({
     return savedConfig
       ? JSON.parse(savedConfig)
       : {
+          // New installation component
+          installationOverview: true,
+
           // Main components
           activityMetrics: true,
           statsTable: true,
@@ -300,6 +306,7 @@ const Dashboard = ({
     switch (presetName) {
       case "showAll":
         setDashboardConfig({
+          installationOverview: true,
           activityMetrics: true,
           uniqueVisits: true,
           totalScans: true,
@@ -314,6 +321,7 @@ const Dashboard = ({
         break;
       case "minimal":
         setDashboardConfig({
+          installationOverview: true,
           activityMetrics: true,
           uniqueVisits: true,
           totalScans: true,
@@ -328,6 +336,7 @@ const Dashboard = ({
         break;
       case "conversionFocus":
         setDashboardConfig({
+          installationOverview: true,
           activityMetrics: true,
           uniqueVisits: true,
           totalScans: true,
@@ -342,6 +351,7 @@ const Dashboard = ({
         break;
       case "employeeFocus":
         setDashboardConfig({
+          installationOverview: true,
           activityMetrics: true,
           uniqueVisits: false,
           totalScans: false,
@@ -614,6 +624,24 @@ const Dashboard = ({
             <ActivityMetrics
               metrics={currentMetrics}
               config={dashboardConfig}
+            />
+          )}
+
+          {/* Installation Overview */}
+          {dashboardConfig.installationOverview && (
+            <InstallationOverviewCard
+              completedCertifications={
+                metrics?.summary?.statusDistribution?.Complete || 0
+              }
+              nodesRecommended={
+                metrics?.metrics?.installation?.totalNodesRecommended || 0
+              }
+              nodesInstalled={
+                metrics?.metrics?.installation?.totalNodesInstalled || 0
+              }
+              installationRatio={parseFloat(
+                metrics?.metrics?.installation?.installationRate || 0
+              )}
             />
           )}
 

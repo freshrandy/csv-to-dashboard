@@ -226,6 +226,30 @@ const ConfigurationPanel = ({
         </div>
       </div>
 
+      {/* Installation Card Section */}
+      <div className="p-4">
+        <h3 className="font-medium text-gray-700 mb-2">Installation Metrics</h3>
+        <div className="space-y-2">
+          <div
+            className="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer"
+            onClick={() => onToggleComponent("installationOverview")}
+          >
+            <div
+              className={`w-5 h-5 rounded-full mr-2 flex items-center justify-center ${
+                config.installationOverview ? "bg-teal-500" : "bg-gray-300"
+              }`}
+            >
+              {config.installationOverview && (
+                <div className="w-3 h-3 bg-white rounded-full"></div>
+              )}
+            </div>
+            <span className="text-sm font-medium">
+              Completed Certifications
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Charts Section */}
       <div className="p-4">
         <h3 className="font-medium text-gray-700 mb-2">Charts</h3>
